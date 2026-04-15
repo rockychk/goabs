@@ -1739,7 +1739,7 @@
         document.getElementById('sekolahName').textContent = currentUser.sekolah || '-';
         document.getElementById('kelasName').textContent = currentUser.namaKelas || '-';
         document.getElementById('packageBadge').innerHTML = `Paket: ${currentUser.paket || '-'}`;
-        document.getElementById('waAdminLink').href = `https://wa.me/6289609745090?text=Halo Admin, saya ${currentUser.name} (${currentUser.sekolah}) ingin bertanya tentang WebApp Absensi. Email: ${currentUser.email}`;
+        document.getElementById('waAdminLink').href = `https://wa.me/6289609745090?text=Halo Admin, saya ${currentUser.name} (${currentUser.sekolah}) ingin bertanya tentang WebApp Absensi GoAbs. Email: ${currentUser.email}`;
 
         // Cek peringatan masa tenggang
         if (currentUser.masaAktif) {
@@ -1801,6 +1801,8 @@
         } else {
             updateAccentColors('#667eea');
         }
+        trackDashboardAccess().catch(e => console.log('Tracking error:', e));
+        detectDevToolsOnLoad();
     }
     
     function loadPaketOptions() {
@@ -1824,7 +1826,7 @@
         const price = parseInt(btn.dataset.price);
         const duration = btn.dataset.duration;
         const days = parseInt(btn.dataset.days);
-        const message = `Halo Admin, saya ${currentUser.name} dengan UID ${currentUser.uid} ingin memperpanjang masa paket WebApp Absensi dengan paket ${duration}, harga Rp ${price.toLocaleString()}. Email: ${currentUser.email}`;
+        const message = `Halo Admin, saya ${currentUser.name} dengan UID ${currentUser.uid} ingin memperpanjang masa paket di GoAbs dengan paket ${duration}, harga Rp ${price.toLocaleString()}. Email: ${currentUser.email}`;
         const waUrl = `https://wa.me/6289609745090?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');
     };
@@ -4692,33 +4694,64 @@
         }
     }
 
+    // ==================== TRACKING TANPA MENGGANGGU UI ====================
     async function trackDashboardAccess() {
-        try {
-            const trackData = {
+        // Non-blocking: tidak pakai await, biar jalan di background
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'trackUser',
                 email: currentUser?.email || 'Unknown',
-                ip: await getClientIP(),
+                ip: await getClientIP().catch(() => 'Unknown'),
                 userAgent: navigator.userAgent,
                 referrer: document.referrer,
-                timestamp: new Date().toISOString()
-            };
-            
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'trackUser',
-                    ...trackData
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (!result.isRegistered) {
-                console.warn('⚠️ Akses tidak sah!');
-                window.location.href = 'index.html';
-            }
-        } catch(e) {
-            console.log('Tracking error:', e);
+                timestamp: new Date().toISOString(),
+                devToolsDetected: detectDevTools() // Deteksi F12/DevTools
+            })
+        }).catch(e => console.log('Tracking error:', e));
+        
+        // LANGSUNG LANJUTKAN tanpa menunggu response
+    }
+
+    function detectDevTools() {
+        let detected = false;
+        
+        const threshold = 200;
+        const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+        const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+        
+        if (widthThreshold || heightThreshold) {
+            detected = true;
         }
+        
+        const before = new Date();
+        debugger;
+        const after = new Date();
+        if (after - before > 100) {
+            detected = true;
+        }
+        
+        return detected;
+    }
+
+    function detectDevToolsOnLoad() {
+        const devtools = { isOpen: false };
+        const element = new Image();
+        Object.defineProperty(element, 'id', {
+            get: function() {
+                devtools.isOpen = true;
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'devToolsDetected',
+                        email: currentUser?.email || 'Unknown',
+                        url: window.location.href,
+                        timestamp: new Date().toISOString()
+                    })
+                }).catch(e => console.log('DevTools detect error:', e));
+            }
+        });
+        console.log(element);
     }
 
     function setHiddenWatermark() {
