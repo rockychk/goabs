@@ -1002,6 +1002,14 @@
             font-size: 14px;
         }
 
+        #infoModalWaBtn {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            width: 100%;
+        }
+
     </style>
 </head>
 <body class="bg-default">
@@ -1177,6 +1185,11 @@
                 </button>
             </div>
             <div id="riwayatAbsensiList"><div class="spinner"></div></div>
+            <div id="paginationControls" style="display: flex; justify-content: center; gap: 16px; margin-top: 20px; align-items: center;">
+                <button id="prevPageBtn" class="btn-sm" style="background:#667eea; color:white; padding:10px 20px; display:none;"><i class="fas fa-chevron-left"></i> Kembali</button>
+                <span id="pageInfo" style="font-size:13px; color:#64748b;"></span>
+                <button id="nextPageBtn" class="btn-sm" style="background:#667eea; color:white; padding:10px 20px;"><i class="fas fa-chevron-right"></i> Lanjut</button>
+            </div>
         </div>
     </div>
 
@@ -1361,8 +1374,9 @@
         <div class="form-group">
             <label>Chat ID Telegram (dari @userinfobot)</label>
             <input type="text" id="siswaTelegram" placeholder="Masukkan Chat ID">
-            <small style="font-size:10px; color:#64748b;">
-                <i class="fas fa-info-circle"></i> ID biasanya berupa angka, contoh: 123456789
+            <small style="font-size:10px; color:#64748b; display:block; margin-top:5px;">
+                <i class="fas fa-info-circle"></i> Disarankan mengirim link form ini ke orangtua. 
+                <span id="copyPanduanLink" style="color:#667eea; cursor:pointer; text-decoration:underline;">Klik Salin</span>
             </small>
         </div>
         
@@ -1567,6 +1581,20 @@
     </div>
 </div>
 
+<!-- Modal Info Notifikasi -->
+<div id="infoModal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:350px; text-align:center;">
+        <h3 id="infoModalTitle">Informasi</h3>
+        <p id="infoModalMessage" style="margin:16px 0; font-size:14px;"></p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button id="infoModalOkBtn" class="btn-save" onclick="closeInfoModal()" style="background:#667eea;">OK</button>
+            <button id="infoModalWaBtn" class="btn-save" style="background:#25D366; display:none;">
+                <i class="fab fa-whatsapp"></i> Bagikan ke WhatsApp
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Lightbox untuk preview gambar -->
 <div id="lightbox" class="lightbox" onclick="closeLightbox()">
     <div class="close-lightbox" onclick="closeLightbox()">&times;</div>
@@ -1643,6 +1671,10 @@
     let absensiPage = 0;
     const ABSENSI_PER_PAGE = 10;
     let currentAbsensiFilter = { mapelId: '', tanggal: '' };
+
+    let currentPage = 1;
+    let totalPagesGlobal = 1;
+    let lastAllData = [];
 
     // ==================== UTILITY ====================
     async function apiCall(action, data = {}) {
@@ -1781,6 +1813,29 @@
         await loadDataParallel();
         await cekHariLibur(); // Tambahkan baris ini
         await trackDashboardAccess()
+        
+
+        // Event listener untuk tombol pagination
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+
+        if (prevBtn) {
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadRiwayatAbsensi(false);
+                }
+            };
+        }
+
+        if (nextBtn) {
+            nextBtn.onclick = () => {
+                if (currentPage < totalPagesGlobal) {
+                    currentPage++;
+                    loadRiwayatAbsensi(false);
+                }
+            };
+        }
 
         // Setup navigasi
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -1803,6 +1858,12 @@
         }
         trackDashboardAccess().catch(e => console.log('Tracking error:', e));
         detectDevToolsOnLoad();
+
+        // ========== TAMBAHKAN EVENT LISTENER UNTUK COPY PANDUAN ==========
+        const copyLinkSpan = document.getElementById('copyPanduanLink');
+        if (copyLinkSpan) {
+            copyLinkSpan.onclick = copyOrangtuaMessage;
+        }
     }
     
     function loadPaketOptions() {
@@ -2430,22 +2491,17 @@
     function updateMapelSelects() {
         const hariIni = getHariIni();
         
+        // Badge hari di scanner
         const hariIniBadge = document.getElementById('hariIniBadge');
         if (hariIniBadge) {
-            hariIniBadge.textContent = `${hariIni}`;
-            const hariColors = {
-                'Senin': '#3b82f6', 'Selasa': '#10b981', 'Rabu': '#202020',
-                'Kamis': '#8b5cf6', 'Jumat': '#06b6d4', 'Sabtu': '#ef4444', 'Minggu': '#222222'
-            };
-            if (hariColors[hariIni]) {
-                hariIniBadge.style.background = hariColors[hariIni];
-            }
+            hariIniBadge.textContent = hariIni;
+            const hariColors = { 'Senin':'#3b82f6','Selasa':'#10b981','Rabu':'#202020',
+                'Kamis':'#8b5cf6','Jumat':'#06b6d4','Sabtu':'#ef4444','Minggu':'#222222' };
+            if (hariColors[hariIni]) hariIniBadge.style.background = hariColors[hariIni];
         }
         
-        // Filter mapel berdasarkan hari ini dan TIDAK di-hidden untuk scanner
+        // Untuk scanner: hanya mapel hari ini dan tidak disembunyikan
         const mapelHariIni = mapelList.filter(m => m.hari === hariIni && !m.isHidden);
-        
-        // Untuk select scanner (hanya mapel hari ini)
         let scannerOpts = '<option value="">Pilih Mata Pelajaran</option>';
         if (mapelHariIni.length === 0) {
             scannerOpts = '<option value="" disabled>Tidak ada mapel untuk hari ' + hariIni + '</option>';
@@ -2454,16 +2510,18 @@
         }
         document.getElementById('selectedMapelScan').innerHTML = scannerOpts;
         
-        // ========== PERUBAHAN: Untuk filter absensi (hanya mapel hari ini, tidak termasuk yang di-hidden) ==========
-        const mapelHariIniSemua = mapelList.filter(m => m.hari === hariIni);
-        
-        let riwayatOpts = '<option value="">Semua Mapel (Hari Ini)</option>';
-        if (mapelHariIniSemua.length === 0) {
-            riwayatOpts = '<option value="" disabled>Tidak ada mapel untuk hari ' + hariIni + '</option>';
+        // ========== PERBAIKAN UNTUK FILTER RIWAYAT ==========
+        // Tampilkan SEMUA mapel (termasuk yang disembunyikan) agar bisa difilter
+        let semuaMapelOpts = '<option value="">Semua Mapel</option>';
+        if (mapelList.length === 0) {
+            semuaMapelOpts = '<option value="" disabled>Belum ada mapel</option>';
         } else {
-            riwayatOpts += mapelHariIniSemua.map(m => `<option value="${m.idMapel}">${escapeHtml(m.namaMapel)}${m.isHidden ? ' (tersembunyi)' : ''}</option>`).join('');
+            // Urutkan berdasarkan hari untuk kemudahan
+            const urutanHari = { 'Senin':1,'Selasa':2,'Rabu':3,'Kamis':4,'Jumat':5,'Sabtu':6,'Minggu':7 };
+            const sortedMapel = [...mapelList].sort((a,b) => (urutanHari[a.hari]||99) - (urutanHari[b.hari]||99));
+            semuaMapelOpts += sortedMapel.map(m => `<option value="${m.idMapel}">${escapeHtml(m.namaMapel)} ${m.isHidden ? '(tersembunyi)' : ''}</option>`).join('');
         }
-        document.getElementById('filterMapelAbsensi').innerHTML = riwayatOpts;
+        document.getElementById('filterMapelAbsensi').innerHTML = semuaMapelOpts;
     }
     
     function renderMapelList() {
@@ -3120,19 +3178,70 @@
     window.hapusRiwayatBerdasarkanFilter = async () => {
         const mapelId = document.getElementById('filterMapelAbsensi').value;
         const tanggal = document.getElementById('filterTanggalAbsensi').value;
+        const periode = document.getElementById('filterPeriode').value;
+        
+        console.log('Filter yang dipilih:', { mapelId, tanggal, periode });
+        
+        // Untuk periode arsip, tidak bisa hapus dari sini
+        if (periode === 'arsip') {
+            showToast('❌ Tidak dapat menghapus data arsip. Silakan hubungi admin.');
+            return;
+        }
+        
         if (!mapelId && !tanggal) {
             showToast('Pilih filter mapel atau tanggal dulu');
             return;
         }
-        showConfirm('Hapus semua absensi sesuai filter yang dipilih?', 'Hapus by Filter', async () => {
-            const res = await apiCall('deleteAbsensiByFilter', { uidGuru: currentUser.uid, mapelId, tanggal });
-            if (res.success) {
-                showToast('Absensi dihapus sesuai filter');
-                await loadRiwayatAbsensi();
-                await loadRingkasanHariIni();
-            } else {
-                showToast('Gagal: ' + res.message);
+        
+        // Buat pesan konfirmasi
+        let confirmMessage = '⚠️ Hapus semua absensi dengan filter:\n';
+        if (mapelId) {
+            const mapel = mapelList.find(m => m.idMapel === mapelId);
+            confirmMessage += `📚 Mapel: ${mapel ? mapel.namaMapel : mapelId}\n`;
+        }
+        if (tanggal) {
+            const dateObj = new Date(tanggal);
+            const tglFormat = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            confirmMessage += `📅 Tanggal: ${tglFormat}\n`;
+        }
+        confirmMessage += '\n⚠️ Data yang dihapus TIDAK bisa dikembalikan!\n\nYakin ingin menghapus?';
+        
+        showConfirm(confirmMessage, 'Hapus Berdasarkan Filter', async () => {
+            const deleteBtn = document.querySelector('#pageAbsensi .btn-sm[style*="background:#ef4444"]');
+            if (deleteBtn) showButtonSpinner(deleteBtn, 'Menghapus...');
+            
+            showToast('⏳ Menghapus data...');
+            
+            try {
+                const res = await apiCall('deleteAbsensiByFilter', { 
+                    uidGuru: currentUser.uid, 
+                    mapelId: mapelId || '', 
+                    tanggal: tanggal || '' 
+                });
+                
+                console.log('Response delete:', res);
+                
+                if (res.success) {
+                    const deletedCount = res.data?.deletedCount || 0;
+                    if (deletedCount > 0) {
+                        showToast(`✅ Berhasil menghapus ${deletedCount} data absensi`);
+                    } else {
+                        showToast(`⚠️ Tidak ada data absensi yang cocok dengan filter`);
+                    }
+                    
+                    // Refresh tampilan
+                    await loadRiwayatAbsensi(true);
+                    await loadRingkasanHariIni();
+                    updateStats();
+                } else {
+                    showToast('❌ Gagal: ' + (res.message || 'Terjadi kesalahan'));
+                }
+            } catch (error) {
+                console.error('Error delete:', error);
+                showToast('❌ Gagal menghapus: ' + error.message);
             }
+            
+            if (deleteBtn) hideButtonSpinner(deleteBtn);
         });
     };
 
@@ -3140,6 +3249,7 @@
 
     // Fungsi saat periode berubah
     function onPeriodeChange() {
+        currentPage = 1;   // <-- tambahkan ini
         const periode = document.getElementById('filterPeriode').value;
         const bulanSelect = document.getElementById('filterBulan');
         const tanggalInput = document.getElementById('filterTanggalAbsensi');
@@ -3180,17 +3290,22 @@
     }
 
     // Update fungsi loadRiwayatAbsensi yang sudah ada
-    // Ganti fungsi loadRiwayatAbsensi yang lama dengan yang baru ini
-    window.loadRiwayatAbsensi = async (reset = true) => {
+    window.loadRiwayatAbsensi = async (resetPage = true) => {
         const mapelId = document.getElementById('filterMapelAbsensi').value;
         const periode = document.getElementById('filterPeriode').value;
         const bulanArsip = document.getElementById('filterBulan').value;
         let tanggalFilter = document.getElementById('filterTanggalAbsensi').value;
         const container = document.getElementById('riwayatAbsensiList');
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        const pageInfoSpan = document.getElementById('pageInfo');
         
         // Validasi untuk periode arsip
         if (periode === 'arsip' && !bulanArsip) {
             container.innerHTML = '<div class="empty-state">Silakan pilih bulan arsip terlebih dahulu</div>';
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (pageInfoSpan) pageInfoSpan.textContent = '';
             return;
         }
         
@@ -3204,12 +3319,18 @@
             document.getElementById('filterTanggalAbsensi').value = tanggalFilter;
         }
 
-        if (reset) {
-            absensiPage = 0;
-            container.innerHTML = '<div class="spinner"></div>';
+        if (resetPage) {
+            currentPage = 1;
+            absensiPage = 0; // untuk kompatibilitas, tapi kita akan pakai currentPage
         }
-
-        // Panggil API dengan parameter periode
+        
+        // Tampilkan spinner di container dan sembunyikan tombol sementara
+        container.innerHTML = '<div class="spinner"></div>';
+        if (prevBtn) prevBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = true;
+        if (pageInfoSpan) pageInfoSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memuat...';
+        
+        // Panggil API untuk mendapatkan semua data (tanpa pagination di server)
         const res = await apiCall('getAbsensiWithArchive', { 
             uidGuru: currentUser.uid,
             periode: periode,
@@ -3220,26 +3341,43 @@
         
         if (!res.success) {
             container.innerHTML = '<div class="empty-state">Gagal memuat data</div>';
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (pageInfoSpan) pageInfoSpan.textContent = '';
             return;
         }
 
-        let data = res.data;
-        data.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-
-        const start = absensiPage * ABSENSI_PER_PAGE;
-        const pageData = data.slice(start, start + ABSENSI_PER_PAGE);
-        const totalData = data.length;
+        let allData = res.data || [];
+        // Urutkan dari terbaru ke terlama
+        allData.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        
+        const totalData = allData.length;
+        const totalPages = Math.ceil(totalData / ABSENSI_PER_PAGE);
+        totalPagesGlobal = totalPages;   // simpan ke variabel global
+        // Pastikan currentPage dalam rentang
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        
+        const start = (currentPage - 1) * ABSENSI_PER_PAGE;
+        const pageData = allData.slice(start, start + ABSENSI_PER_PAGE);
+        const showingStart = totalData === 0 ? 0 : start + 1;
         const showingEnd = Math.min(start + ABSENSI_PER_PAGE, totalData);
-
-        if (pageData.length === 0 && start === 0) {
+        
+        // Render data
+        if (pageData.length === 0) {
             if (periode === 'arsip') {
                 container.innerHTML = '<div class="empty-state">Tidak ada data arsip untuk bulan yang dipilih</div>';
             } else {
-                container.innerHTML = '<div class="empty-state">Belum ada data absensi untuk hari ini</div>';
+                const tglFormat = tanggalFilter ? new Date(tanggalFilter).toLocaleDateString('id-ID') : 'tanggal ini';
+                container.innerHTML = `<div class="empty-state">Belum ada data absensi untuk ${tglFormat}</div>`;
             }
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+            if (pageInfoSpan) pageInfoSpan.textContent = '';
             return;
         }
-
+        
+        // Fungsi format tanggal
         function formatTanggal(tglStr) {
             if (!tglStr) return '-';
             if (tglStr.match(/^\d{4}-\d{2}-\d{2}/)) {
@@ -3248,72 +3386,119 @@
             }
             return tglStr;
         }
-
+        
         // Buat HTML untuk data
         let html = '';
         for (const a of pageData) {
             const mapel = mapelList.find(m => m.idMapel === a.mapelId);
-            const namaSiswa = siswaList.find(s => s.idSiswa === a.siswaId)?.nama || a.siswaId;
+            const siswa = siswaList.find(s => s.idSiswa === a.siswaId);
+            const namaSiswa = siswa?.nama || a.siswaId;
+            
+            let statusClass = '';
+            if (a.status === 'Hadir') statusClass = 'status-hadir';
+            else if (a.status === 'Terlambat') statusClass = 'status-terlambat';
+            else statusClass = 'status-alpa';
+            
             html += `
                 <div class="absensi-item">
                     <div>
                         <strong>${escapeHtml(namaSiswa)}</strong><br>
                         <span style="font-size:11px">${mapel ? mapel.namaMapel : '-'} | ${formatTanggal(a.tanggal)} | ${a.jam?.substring(0,5) || '-'}</span><br>
-                        <span class="status-${a.status === 'Hadir' ? 'hadir' : (a.status === 'Terlambat' ? 'terlambat' : 'alpa')}">${a.status}</span>
-                        ${a.keterangan ? `<span style="font-size:10px; color:#64748b"> (${a.keterangan})</span>` : ''}
+                        <span class="${statusClass}">${a.status}</span>
+                        ${a.keterangan ? `<span style="font-size:10px; color:#64748b"> (${escapeHtml(a.keterangan)})</span>` : ''}
                     </div>
-                    <button class="btn-icon btn-delete" onclick="hapusSatuAbsensi('${a.idAbsensi}')" style="background:#fee2e2; padding:8px 12px; border-radius:12px;"><i class="fas fa-trash"></i></button>
+                    <button class="btn-icon btn-delete" onclick="hapusSatuAbsensi('${a.idAbsensi}')" style="background:#fee2e2; padding:8px 12px; border-radius:12px;">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             `;
         }
-
-        // Buat container baru untuk semua konten
-        let finalHtml = '';
         
         // Info jumlah data
+        let infoHtml = '';
         if (periode === 'arsip') {
-            finalHtml += `
+            infoHtml = `
                 <div class="arsip-badge">
                     <i class="fas fa-archive"></i> 
                     Menampilkan data arsip bulan: ${bulanArsip} | Total: ${totalData} data
                 </div>
             `;
         } else {
-            finalHtml += `
-                <div class="pagination-info" style="background:#f1f5f9; padding:10px 12px; border-radius:12px; margin-bottom:16px; font-size:12px; color:#475569; text-align:center;">
-                    <i class="fas fa-calendar-alt"></i> Tanggal: ${formatTanggal(tanggalFilter)} | Total: ${totalData} data | Menampilkan ${start + 1}-${showingEnd}
+            infoHtml = `
+                <div class="pagination-info">
+                    <i class="fas fa-calendar-alt"></i> Tanggal: ${formatTanggal(tanggalFilter)} | Total: ${totalData} data | Halaman ${currentPage} dari ${totalPages}
                 </div>
             `;
         }
         
-        // Data absensi
-        finalHtml += html;
+        container.innerHTML = infoHtml + html;
         
-        // Tombol Muat Lebih
-        if (showingEnd < totalData) {
-            finalHtml += `
-                <div style="display:flex; justify-content:center; margin-top:20px;">
-                    <button class="btn-sm load-more-btn" style="background:#667eea; color:white; padding:12px 24px; border-radius:12px; cursor:pointer; width:100%; max-width:200px;">
-                        <i class="fas fa-chevron-down"></i> Muat Lebih (${totalData - showingEnd} data lagi)
-                    </button>
-                </div>
-            `;
+        // Update tombol navigasi
+        if (prevBtn && nextBtn && pageInfoSpan) {
+            // Tampilkan tombol jika total halaman > 1
+            if (totalPages > 1) {
+                prevBtn.style.display = 'inline-flex';
+                nextBtn.style.display = 'inline-flex';
+                pageInfoSpan.style.display = 'inline-block';
+                pageInfoSpan.textContent = `Halaman ${currentPage} dari ${totalPages}`;
+                
+                // Kondisi tombol prev
+                if (currentPage <= 1) {
+                    prevBtn.disabled = true;
+                    prevBtn.style.opacity = '0.5';
+                    prevBtn.style.cursor = 'not-allowed';
+                } else {
+                    prevBtn.disabled = false;
+                    prevBtn.style.opacity = '1';
+                    prevBtn.style.cursor = 'pointer';
+                }
+                
+                // Kondisi tombol next
+                if (currentPage >= totalPages) {
+                    nextBtn.disabled = true;
+                    nextBtn.style.opacity = '0.5';
+                    nextBtn.style.cursor = 'not-allowed';
+                } else {
+                    nextBtn.disabled = false;
+                    nextBtn.style.opacity = '1';
+                    nextBtn.style.cursor = 'pointer';
+                }
+            } else {
+                // Sembunyikan tombol jika hanya 1 halaman
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                pageInfoSpan.style.display = 'none';
+            }
         }
         
-        container.innerHTML = finalHtml;
-        
-        // Event listener tombol muat lebih
-        const loadMoreBtn = container.querySelector('.load-more-btn');
-        if (loadMoreBtn) {
-            loadMoreBtn.onclick = () => {
-                absensiPage++;
-                loadRiwayatAbsensi(false);
-            };
-        }
+        // Aktifkan tombol (spinner sudah selesai)
+        if (prevBtn) prevBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = false;
     };
 
+    // Fungsi untuk navigasi halaman
+    function goToPrevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            loadRiwayatAbsensi(false);
+        }
+    }
+
+    function goToNextPage() {
+        const totalPages = Math.ceil(totalDataCount / ABSENSI_PER_PAGE); // kita perlu simpan totalDataCount
+        // Cara lebih baik: hitung ulang di dalam loadRiwayatAbsensi, tapi kita bisa simpan variabel global
+        // Sederhananya: panggil loadRiwayatAbsensi(false) dan di dalamnya akan menghitung ulang berdasarkan data yang sama.
+        // Namun karena data sudah di-cache di allData, kita perlu menyimpannya.
+        // Alternatif: panggil loadRiwayatAbsensi(false) dan di dalam fungsi akan mengambil data dari server lagi.
+        // Agar lebih efisien, kita simpan allData terakhir.
+        if (currentPage < totalPagesGlobal) {
+            currentPage++;
+            loadRiwayatAbsensi(false);
+        }
+    }
+
     function resetRiwayatPageAndLoad() {
-        absensiPage = 0;
+        currentPage = 1;
         loadRiwayatAbsensi(true);
     }
 
@@ -4550,6 +4735,81 @@
         }).catch(() => {
             showToast('Gagal menyalin link');
         });
+    }
+
+    // Fungsi untuk menutup modal info
+    function closeInfoModal() {
+        document.getElementById('infoModal').style.display = 'none';
+    }
+
+    // Fungsi untuk membuka modal info (diperbarui dengan dukungan tombol WhatsApp)
+    function openInfoModal(message, title = 'Informasi', waMessage = null) {
+        const modal = document.getElementById('infoModal');
+        const titleEl = document.getElementById('infoModalTitle');
+        const msgEl = document.getElementById('infoModalMessage');
+        const okBtn = document.getElementById('infoModalOkBtn');
+        const waBtn = document.getElementById('infoModalWaBtn');
+        
+        titleEl.textContent = title;
+        msgEl.innerHTML = message;
+        
+        // Set warna tombol OK sesuai tema header
+        const accentColor = accentColors[currentUser?.headerTheme || 'default'] || '#667eea';
+        okBtn.style.background = accentColor;
+        
+        // Atur tombol WhatsApp
+        if (waMessage) {
+            waBtn.style.display = 'flex';
+            waBtn.onclick = () => shareToWhatsApp(waMessage);
+        } else {
+            waBtn.style.display = 'none';
+        }
+        
+        modal.style.display = 'flex';
+    }
+
+    // Fungsi untuk menghasilkan pesan lengkap yang akan disalin
+    function generateOrangtuaMessage() {
+        const baseUrl = window.location.origin + window.location.pathname.replace('guru-dashboard.html', 'form-ortu.html');
+        const uid = currentUser.uid;
+        const link = `${baseUrl}?uid=${uid}`;
+        const guruName = currentUser.name || 'Guru';
+        
+        const message = 
+        `Hai Bapak/Ibu, saat ini kelas saya sedang menggunakan *GoAbs* (Gorontalo Absensi) yaitu *Absensi Digital Berbasis Parentis*. Aplikasi ini terintegrasi dengan orangtua secara real-time sehingga Anak dapat di kontrol melalui pesan absensi otomatis via Telegram.\n
+        Jika Bapak/Ibu setuju, silahkan Bapak/Ibu baca terlebih dahulu langkah-langkah WAJIB agar terintegrasi dengan *GoAbs* :\n
+        *1. Buka Telegram (Jika belum ada, download dari PlayStore/AppStore), cari @GoAbsBot → klik START (INI WAJIB! Tanpa ini notifikasi tidak akan masuk)*\n
+        *2. Cari @userinfobot → klik START → copy angka ID yang muncul*\n
+        *3. Klik link yang ada dibawah ini → cari nama anak/ketikkan NISNnya → klik tombol pensil untuk Edit → paste ID Telegram → klik SIMPAN*\n
+        ${link}\n
+        Dengan begitu, maka Absensi Anak bisa dipantau melalui pesan guru via Telegram secara real-time.\n
+        Terima kasih atas perhatiannya\n
+        Tertanda\n
+        ${guruName}`;
+        
+        return message;
+    }
+
+    // Fungsi untuk menyalin pesan ke clipboard dan menampilkan modal
+    async function copyOrangtuaMessage() {
+        const message = generateOrangtuaMessage();
+        try {
+            await navigator.clipboard.writeText(message);
+            openInfoModal(
+                '✅ Pesan berhasil disalin!<br><br>Silakan bagikan ke WhatsApp melalui grup kelas / orang tua siswa',
+                'Berhasil Disalin',
+                message  // <-- kirim pesan untuk tombol WhatsApp
+            );
+        } catch (err) {
+            console.error('Gagal menyalin: ', err);
+            openInfoModal('❌ Gagal menyalin pesan. Silakan coba lagi.', 'Gagal');
+        }
+    }
+
+    // Fungsi untuk membagikan pesan ke WhatsApp
+    function shareToWhatsApp(message) {
+        const encodedMsg = encodeURIComponent(message);
+        window.open(`https://wa.me/?text=${encodedMsg}`, '_blank');
     }
 
     // ==================== DRAG AND DROP MAPEL ====================
