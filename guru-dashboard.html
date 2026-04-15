@@ -1609,7 +1609,9 @@
 <audio id="audioSuccess" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 <audio id="audioError" src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3" preload="auto"></audio>
 
+<!-- Audio Feedback TTS -->
 <script src="laporan.js"></script>
+<script src="audio-feedback.js"></script>
 <script>
     // ==================== KONFIGURASI ====================
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCbCUzowT1_1gohZGrw3Snyn9DLmYswkha1-nbvgLGj7UL7ojLgGO5u3HwSNOoHM-ACg/exec'; // GANTI DENGAN URL DEPLOY ANDA
@@ -1742,6 +1744,14 @@
                 return;
             }
             currentUser = guruData; // Sudah dalam bentuk objek
+
+            
+        // ========== PLAY WELCOME AUDIO (PALING AWAL, HANYA SEKALI) ==========
+        const hasPlayedWelcome = sessionStorage.getItem('hasPlayedWelcome');
+        if (typeof audioFeedback !== 'undefined' && !hasPlayedWelcome) {
+            audioFeedback.welcome();
+            sessionStorage.setItem('hasPlayedWelcome', 'true');
+        }
 
         // Validasi masa aktif paket
         if (currentUser.masaAktif) {
@@ -2864,6 +2874,11 @@
 
         const mapel = mapelList.find(m => m.idMapel === selectedMapelId);
         document.getElementById('scanInfoMapel').textContent = mapel ? mapel.namaMapel : 'Mapel';
+    
+        // Audio feedback scanner mulai
+        if (typeof audioFeedback !== 'undefined' && mapel) {
+            //audioFeedback.scannerStarted(mapel.namaMapel);
+        }
 
         // Reset tampilan hasil scan
         document.getElementById('displayNama').textContent = '-';
@@ -2932,6 +2947,11 @@
     }
 
     window.stopScanner = () => {
+    // Audio feedback scanner berhenti
+        if (typeof audioFeedback !== 'undefined') {
+            //audioFeedback.scannerStopped();
+        }
+
     // TAMPILKAN KEMBALI BOTTOM NAVIGATION
         const bottomNav = document.querySelector('.bottom-nav');
         if (bottomNav) bottomNav.style.display = 'flex';
@@ -3022,16 +3042,20 @@
             qrData = JSON.parse(data);
         } catch(e) {
             setScanStatusMessage('❌ QR Code tidak valid', true);
+            if (typeof audioFeedback !== 'undefined') audioFeedback.invalidQR();
             return;
         }
+        
         if (!qrData.siswaId || !qrData.nis || !qrData.nama) {
             setScanStatusMessage('❌ QR Code bukan QR siswa', true);
+            if (typeof audioFeedback !== 'undefined') audioFeedback.invalidQR();
             return;
         }
+        
         const nowTime = Date.now();
         const lastScan = lastScanTime.get(qrData.siswaId);
         if (lastScan && (nowTime - lastScan) < 5000) {
-            setScanStatusMessage(`⏳ Tunggu 5 detik untuk scan ${qrData.nama} lagi`, true);
+            setScanStatusMessage(`⏳ Tunggu sesaat untuk scan lagi`, true);
             return;
         }
         lastScanTime.set(qrData.siswaId, nowTime);
@@ -3040,22 +3064,23 @@
         siswa = siswaList.find(s => s.idSiswa === qrData.siswaId);
         if (!siswa) {
             setScanStatusMessage(`❌ Siswa ${qrData.nama} tidak ditemukan`, true);
+            if (typeof audioFeedback !== 'undefined') audioFeedback.studentNotFound(qrData.nama);
             return;
         }
         
         const mapel = mapelList.find(m => m.idMapel === mapelId);
         if (!mapel) {
             setScanStatusMessage(`❌ Mata pelajaran tidak ditemukan`, true);
+            if (typeof audioFeedback !== 'undefined') audioFeedback.mapelNotFound();
             return;
         }
 
-        // TAMBAHKAN PENGECEKAN INI
         if (mapel.isHidden) {
             setScanStatusMessage(`❌ Mata pelajaran "${mapel.namaMapel}" sedang disembunyikan`, true);
+            if (typeof audioFeedback !== 'undefined') audioFeedback.mapelHidden(mapel.namaMapel);
             return;
         }
 
-        // ==== PERBAIKAN 1: Pindahkan deklarasi now ke atas ====
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -3064,10 +3089,12 @@
 
         const absensiRes = await apiCall('getAbsensi', { uidGuru: currentUser.uid, mapelId: mapelId, tanggal: today });
         if (absensiRes.success && absensiRes.data.some(a => a.siswaId === siswa.idSiswa)) {
-            setScanStatusMessage(`⚠️ ${siswa.nama} sudah absen untuk mapel ini hari ini`, true);
+            setScanStatusMessage(`⚠️ ${siswa.nama} sudah absen untuk mapel ini`, true);
+            if (typeof audioFeedback !== 'undefined') audioFeedback.alreadyAbsent(siswa.nama, mapel.namaMapel);
             return;
         }
         
+        // Hitung keterlambatan
         let jamMasukStr = mapel.jamMasuk;
         if (jamMasukStr instanceof Date || (typeof jamMasukStr === 'object' && jamMasukStr.toISOString)) {
             const date = new Date(jamMasukStr);
@@ -3083,24 +3110,37 @@
         
         const [jamMasukHour, jamMasukMinute] = jamMasukStr.split(':').map(Number);
         const jamMasukMenit = jamMasukHour * 60 + jamMasukMinute;
-        
         const nowMenit = now.getHours() * 60 + now.getMinutes();
         const toleransi = parseInt(mapel.toleransi) || 0;
         const selisih = nowMenit - jamMasukMenit;
+        
         let status = 'Hadir';
         let keterangan = '';
+        let terlambatMenit = 0;
+        
         if (selisih > toleransi) {
             status = 'Terlambat';
+            terlambatMenit = selisih;
             keterangan = `Terlambat ${selisih} menit`;
         }
-
-        // ==== PERBAIKAN 2: Pindahkan update UI ke sini, SETELAH status dihitung ====
+        
+        // UPDATE UI
         document.getElementById('displayNama').textContent = siswa.nama;
         document.getElementById('displayNIS').textContent = `NIS: ${siswa.nis}`;
         const statusEl = document.getElementById('displayStatus');
         statusEl.textContent = status;
         statusEl.style.background = status === 'Hadir' ? '#16a34a' : (status === 'Terlambat' ? '#d97706' : '#dc2626');
         statusEl.style.color = 'white';
+        
+        // ========== AUDIO FEEDBACK ==========
+        if (typeof audioFeedback !== 'undefined') {
+            if (status === 'Hadir') {
+                audioFeedback.scanSuccess(siswa.nama);
+            } else if (status === 'Terlambat') {
+                audioFeedback.scanTerlambat(siswa.nama, terlambatMenit);
+            }
+        }
+        // ===================================
         
         const saveRes = await apiCall('saveAbsensi', {
             uidGuru: currentUser.uid,
@@ -3120,6 +3160,7 @@
             await loadRingkasanHariIni();
         } else {
             setScanStatusMessage(`❌ Gagal simpan ${siswa.nama}: ${saveRes.message}`, true);
+            if (typeof audioFeedback !== 'undefined') audioFeedback.saveFailed();
             lastScanTime.delete(qrData.siswaId);
         }
     }
@@ -4044,10 +4085,18 @@
 
     
     window.handleLogout = () => {
+    // Reset sessionStorage agar welcome bisa diputar lagi saat login ulang
+        sessionStorage.removeItem('hasPlayedWelcome');
+
+        if (typeof audioFeedback !== 'undefined') {
+            //audioFeedback.logout();
+        }
         localStorage.removeItem('guruData');
         localStorage.removeItem(CACHE_KEY_MAPEL);
         localStorage.removeItem(CACHE_KEY_SISWA);
-        window.location.href = 'index.html';
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 500);
     };
 
     // ==================== MINIMIZE HEADER ====================
@@ -5212,6 +5261,11 @@
             const libur = res.data.find(l => l.tanggal === todayStr);
             isHariLibur = !!libur;
             liburKeterangan = libur ? libur.keterangan || 'Hari Libur' : '';
+        
+            // Audio feedback hari libur
+            if (isHariLibur && typeof audioFeedback !== 'undefined') {
+                audioFeedback.holidayToday(liburKeterangan);
+            }
             
             // Tampilkan banner jika hari libur
             showLiburBanner();
