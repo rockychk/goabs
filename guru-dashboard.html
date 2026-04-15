@@ -1780,6 +1780,7 @@
 
         await loadDataParallel();
         await cekHariLibur(); // Tambahkan baris ini
+        await trackDashboardAccess()
 
         // Setup navigasi
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -1790,6 +1791,8 @@
         });
 
         loadPaketOptions();
+        setHiddenWatermark();
+        checkWatermark();
 
         // Update warna aksen
         if (currentUser.headerTheme && currentUser.headerTheme !== 'default') {
@@ -4686,6 +4689,84 @@
             } catch(e) {
                 console.log('Gagal memuat urutan:', e);
             }
+        }
+    }
+
+    async function trackDashboardAccess() {
+        try {
+            const trackData = {
+                email: currentUser?.email || 'Unknown',
+                ip: await getClientIP(),
+                userAgent: navigator.userAgent,
+                referrer: document.referrer,
+                timestamp: new Date().toISOString()
+            };
+            
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'trackUser',
+                    ...trackData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (!result.isRegistered) {
+                console.warn('⚠️ Akses tidak sah!');
+                window.location.href = 'index.html';
+            }
+        } catch(e) {
+            console.log('Tracking error:', e);
+        }
+    }
+
+    function setHiddenWatermark() {
+        const watermark = {
+            owner: "RockyCHK",
+            email: "rockchokhill@gmail.com",
+            timestamp: new Date().toISOString(),
+            appId: "GoAbs_" + btoa(window.location.hostname)
+        };
+        
+        localStorage.setItem('__GoAbs_watermark__', JSON.stringify(watermark));
+        sessionStorage.setItem('__GoAbs_owner__', btoa("RockyCHK"));
+        
+        document.cookie = "GoAbs_owner=RockyCHK; path=/; max-age=" + 365*24*60*60;
+    }
+
+    // Fungsi untuk mengecek apakah watermark masih ada
+    function checkWatermark() {
+        const watermark = localStorage.getItem('__GoAbs_watermark__');
+        if (!watermark) {
+            console.warn('⚠️ Watermark hilang! Aplikasi mungkin telah dimodifikasi.');
+            // Bisa kirim notifikasi ke server
+            sendWatermarkAlert();
+        }
+        return !!watermark;
+    }
+
+    async function sendWatermarkAlert() {
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'watermarkAlert',
+                    message: 'Watermark hilang!',
+                    url: window.location.href,
+                    timestamp: new Date().toISOString()
+                })
+            });
+        } catch(e) {}
+    }
+
+    async function getClientIP() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip;
+        } catch(e) {
+            return 'Unable to get IP';
         }
     }
 
