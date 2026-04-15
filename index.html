@@ -1,242 +1,653 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ikha & Jery</title>
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <link href='https://fonts.googleapis.com/css?family=DM Serif Text|Autour One|Bettrish Dafont|Merienda|Amita|Kumar One|Lobster|Redressed|Lavishly Yours|Sunshine|Barlow Condensed' rel='stylesheet'>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoAbs - Login Guru</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <!-- Favicon untuk browser desktop -->
-    <link rel="icon" href="fav/favicon.ico" type="image/x-icon">
-  
-    <!-- Favicon untuk perangkat dengan resolusi tinggi -->
-    <link rel="icon" href="fav/favicon.png" type="image/png">
-    
-    <!-- Favicon untuk perangkat iOS (Apple Touch Icon) -->
-    <link rel="apple-touch-icon" href="fav/favicon-180x180.png">
-    
-    <!-- Favicon untuk perangkat Android dan layar beresolusi tinggi -->
-    <link rel="icon" sizes="192x192" href="fav/favicon-192x192.png">
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #714ba2 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+        }
 
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
+        .container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 36px;
+            padding: 36px 28px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15), 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2), 0 15px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .logo-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-icon i {
+            font-size: 36px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 6px;
+            font-weight: 400;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 12px;
+            margin: 28px 0 24px;
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 6px;
+            position: relative;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: #667eea;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 14px 18px;
+            transition: all 0.25s ease;
+            background: white;
+        }
+
+        .input-group:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: scale(1.01);
+        }
+
+        .input-group i {
+            color: #94a3b8;
+            margin-right: 14px;
+            font-size: 18px;
+            transition: color 0.25s ease;
+        }
+
+        .input-group:focus-within i {
+            color: #667eea;
+        }
+
+        input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            background: transparent;
+        }
+
+        input::placeholder {
+            color: #cbd5e1;
+            font-weight: 400;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 18px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .btn-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #dc2626;
+            border-left: 4px solid #dc2626;
+        }
+
+        .message.success {
+            background: #dcfce7;
+            color: #16a34a;
+            border-left: 4px solid #16a34a;
+        }
+
+        .message i {
+            font-size: 16px;
+        }
+
+        .package-info {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 24px 0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .package-title {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 14px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .package-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .package-option {
+            padding: 12px 8px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: white;
+        }
+
+        .package-option:hover {
+            border-color: #667eea;
+            background: #f8fafc;
+            transform: translateY(-2px);
+        }
+
+        .package-option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .package-price {
+            font-weight: 800;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .package-desc {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .wa-link {
+            display: inline-block;
+            background: #25D366;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 18px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 16px rgba(37, 211, 102, 0.2);
+        }
+
+        .wa-link:hover {
+            background: #1faa52;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
+        }
+
+        /* Responsif */
+        @media (max-width: 480px) {
+            .card {
+                padding: 28px 20px;
+                border-radius: 32px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .logo-icon {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .package-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .message a {
+            color: #dc2626;
+            font-weight: 700;
+            text-decoration: underline;
+            margin-left: 6px;
+        }
+        .message a:hover {
+            color: #b91c1c;
+        }
+    </style>
 </head>
 <body>
-
-
-  <!-- Frame Cover -->
-<div class="frame frame-cover" id="frame-cover">
-  <div>
-      <h4 class="transisi transisi-atas" style="font-family: Redressed; font-size: 3vh; color: #915f3e;">the Wedding</h4>
-      <h1 class="transisi transisi-kanan" style="font-family: Lobster; font-size: 5vh; color: #915f3e;">Ikha & Jery</h1>
-      <p class="transisi transisi-bawah" style="font-family: Redressed; font-size: 2vh; color: #915f3e;">Ahad, 26 Januari 2025</p>
-  </div>
-  
-  <div class="tombolcover">
-      <h3 class="transisi transisi-bawah" style="font-size: 2vh; color: #915f3e; ">Kepada Yth<br>Bapak/Ibu/Saudara/i</h3>
-      <h2 id="recipient-name" class="transisi transisi-bawah" style="background-color: rgba(255, 255, 255, 0,5); border-radius: 3vh; padding: 10px; font-size: 18px; color:#915f3e; margin-bottom: 0px; "></h2>
-      <button id="open-music-btn" class="btn btn-dark mt-3 transisi transisi-atas" onclick="showFrame1()"><i class="fas fa-envelope-open" style="font-size: 14px;"> </i>  Buka Undangan</button>
-      <p><p>
-      <h5 style="font-size: 12px; color:#915f3e; margin-bottom: 50px;">Mohon maaf bila salah penulisan nama/gelar</h5>
-      <p></p>
-  </div>
+<div class="container">
+    <div class="card">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-qrcode"></i></div>
+            <h1>GoAbs</h1>
+            <p class="subtitle">Absensi Digital Berbasis Parentis</p>
+        </div>
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+            <button class="tab-btn" onclick="switchTab('register')">Daftar</button>
+        </div>
+        <!-- Login -->
+        <div id="loginForm">
+            <div class="form-group">
+                <label>Email</label>
+                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="guru@email.com"></div>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="********"></div>
+            </div>
+            <button class="btn btn-primary" onclick="handleLogin()">Login</button>
+        </div>
+        <!-- Register -->
+        <div id="registerForm" class="hidden">
+            <div class="form-group"><label>Nama Lengkap</label><div class="input-group"><i class="fas fa-user"></i><input type="text" id="regName"></div></div>
+            <div class="form-group"><label>Email</label><div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="regEmail"></div></div>
+            <div class="form-group"><label>Password</label><div class="input-group"><i class="fas fa-lock"></i><input type="password" id="regPassword"></div></div>
+            <div class="form-group"><label>Nomor WhatsApp</label><div class="input-group"><i class="fab fa-whatsapp"></i><input type="tel" id="regWhatsapp" placeholder="6281234567890"></div></div>
+            <div class="form-group"><label>Nama Sekolah</label><div class="input-group"><i class="fas fa-school"></i><input type="text" id="regSekolah" placeholder="Contoh: SMA Negeri 1 Jakarta"></div></div>
+            <div class="form-group"><label>Nama Kelas (satu kelas)</label><div class="input-group"><i class="fas fa-chalkboard"></i><input type="text" id="regKelas" placeholder="Contoh: XII IPA 1"></div></div>
+            <div class="package-info">
+                <div class="package-title">Pilih Paket</div>
+                <div class="package-options">
+                    <div class="package-option" data-price="10000" data-duration="minggu" data-days="7" onclick="selectPackage(this)"><div class="package-price">Rp 10.000</div><div class="package-desc">1 Minggu</div></div>
+                    <div class="package-option" data-price="30000" data-duration="bulan" data-days="30" onclick="selectPackage(this)"><div class="package-price">Rp 30.000</div><div class="package-desc">1 Bulan</div></div>
+                    <div class="package-option" data-price="50000" data-duration="semester" data-days="180" onclick="selectPackage(this)"><div class="package-price">Rp 50.000</div><div class="package-desc">1 Semester</div></div>
+                    <div class="package-option" data-price="90000" data-duration="tahun" data-days="365" onclick="selectPackage(this)"><div class="package-price">Rp 90.000</div><div class="package-desc">1 Tahun Standar</div></div>
+                    <div class="package-option" data-price="350000" data-duration="lifetime" data-days="999" onclick="selectPackage(this)"><div class="package-price">Rp 350.000</div><div class="package-desc">Lifetime ⭐</div></div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="handleRegister()">Daftar & Kirim ke Admin</button>
+        </div>
+        <div id="message" class="message"></div>
+    </div>
 </div>
 
+<script>
+    // GANTI DENGAN URL DEPLOY APPS SCRIPT ANDA YANG SUDAH BERHASIL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCbCUzowT1_1gohZGrw3Snyn9DLmYswkha1-nbvgLGj7UL7ojLgGO5u3HwSNOoHM-ACg/exec';
 
-  <!-- Frame 1 -->
-  <div class="frame frame-1" id="frame-1">
-    <div class="dandiantara">
-      <p class="transisi transisi-bawah" style="font-size: 14px; color: #915f3e; "><i>"Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang"</i></p>
-      <p class="transisi transisi-bawah" style="font-size: 14px; color: #915f3e; "><b>- Q.S. Ar-Rum:21 -</b></p>
-    </div>
-  </div>
+    // ========== ENKRIPSI LOCALSTORAGE ==========
+    function encryptData(data) {
+        try {
+            const jsonStr = JSON.stringify(data);
+            return btoa(unescape(encodeURIComponent(jsonStr)));
+        } catch (e) {
+            console.error('Gagal enkripsi:', e);
+            return null;
+        }
+    }
 
-  <!-- Frame 3 -->
-  <div class="frame frame-3" id="frame-3">
-    <div>
-      <div class="transisi transisi-atas" style="font-family: Arial Narrow;">
-        <img src="bismillah.png" style="width: 60% ;"><br/>
-          <h5><b>Assalamu'alaikum Warahmatullahi Wabarakatuh</b></h5><br/>
-          Dengan memohon Ridho serta Rahmat Allah SWT, kami bermaksud menyelenggarakan Resepsi Pernikahan putra-putri kami:<br/>
-      </div>
-      <img class="transisi transisi-kiri" src="image/wanita.png" alt="Groom" style="width: 90%; padding-top: 20px;">
-          <p class="transisi transisi-kanan" style="font-family: Redressed; font-size: 5vh;">Sartika Putri Butolo</p>
-          <p class="transisi transisi-atas"><b>Anak ketiga dari :</b><br/> Bapak Yahya Butolo dan Ibu Fani Samadi Hunawa</p>
-          <a href="https://www.instagram.com/ika_butolo/" target="_blank" class="btn btn btn-dark mt-3 btn-block; width:80px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-instagram" viewBox="0 0 16 16">
-              <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/>
-            </svg>              
-              @Cciwwww
-          </a>
-              <p style="font-family: Lobster; font-size: 5vh; padding-top: 20px;">&</p>
-      <img class="transisi transisi-kanan" src="image/pria.png" alt="Bride" style="width: 90% ;">
-          <p class="transisi transisi-kanan" style="font-family: Redressed; font-size: 5vh;">Jefry Husain</p>
-          <p class="transisi transisi-atas"><b>Anak ketiga dari :</b><br/> Bapak Wahab Husain dan Ibu Mun Aliu (Almh)</p>
-          <a href="https://www.instagram.com/a3ro.jr/" target="_blank" class="btn btn btn-dark mt-3 btn-block; width:80px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-instagram" viewBox="0 0 16 16">
-              <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/>
-            </svg>              
-              @a3ro.jr
-          </a>
-    </div>
-  </div>
-  
-  <!-- Frame 4 -->
-  <div class="frame frame-4" id="frame-4">
-    <img src="bunga-top.png" alt="Top Flowers" >   
-    <div>
-      <h2 class="transisi transisi-bawah" style="font-family: Redressed;">Acara</h2>
-      <div id="countdown" class="countdown transisi transisi-atas"></div>
-      <div class="event">
-        <h4 class="transisi transisi-kiri" style="font-family: Redressed; margin-bottom: 30px;">Akad Nikah</h4>
-        <p class="transisi transisi-kanan" style="font-size: 20px; text-align: left;"><i class="fa-regular fa-calendar-days"></i> Ahad, 26 Januari 2025</p>
-        <p class="transisi transisi-kiri" style="font-size: 20px; text-align: left;"><i class="fa-regular fa-clock"></i> Pukul 09.00 WITA</p>
-        <p class="transisi transisi-bawah" style="text-align: left;"><i class="fa-solid fa-location-dot"></i><b> RUMAH MEMPELAI WANITA</b></p>
-        <p class="transisi transisi-atas" style="font-size: 16px; text-align: left;">Desa Kramat, Kec. Tapa, Kab. Bone Bolango, Kompleks Lapangan IPPOT Tapa, Belakang SDN 2 & 3 Tapa</p>
-        <a href="https://maps.app.goo.gl/5P7tDqdsD5bj2HTc7" target="_blank" class="btn btn btn-dark mt-3 btn-block">Buka Google Maps</a>
-      </div>
-      <div class="event">
-        <h4 class="transisi transisi-kanan" style="font-family: Redressed; margin-bottom: 30px;">Resepsi</h4>
-        <p class="transisi transisi-kanan" style="font-size: 20px; text-align: left;"><i class="fa-regular fa-calendar-days"></i> Ahad, 26 Januari 2025</p>
-        <p class="transisi transisi-kiri" style="font-size: 20px; text-align: left;"><i class="fa-regular fa-clock"></i> Pukul 19.00 WITA</p>
-        <p class="transisi transisi-bawah" style="text-align: left;"><i class="fa-solid fa-location-dot"></i><b> RUMAH MEMPELAI WANITA</b></p>
-        <p class="transisi transisi-atas" style="font-size: 16px; text-align: left;">Desa Kramat, Kec. Tapa, Kab. Bone Bolango, Kompleks Lapangan IPPOT Tapa, Belakang SDN 2 & 3 Tapa</p>
-        <a href="https://maps.app.goo.gl/5P7tDqdsD5bj2HTc7" target="_blank" class="btn btn btn-dark mt-3 btn-block">Buka Google Maps</a>
-      </div>
-    </div>
-    <img src="bunga-bottom.png" alt="Bottom Flowers">
-  </div>
-  
-  <!-- Frame 7 -->
-  <div class="frame frame-7" id="frame-7">
-    <img src="bunga-top.png" alt="Top Flowers" >   
-    <h2 class="transisi transisi-bawah" style="font-family: Redressed;">Kirim Kado</h2><p></p>
-    <p class="transisi transisi-atas" style="font-size: 14px; ">Kehadiran Anda merupakah hadiah terbaik yang bisa kami harapkan. Namun jika Anda bermaksud untuk mengirimkan hadiah pernikahan lain, silahkan klik tombol salin untuk menyalin nomor rekening</p>
-    <div class="gift-card transisi transisi-kanan">
-      <div class="gift-card-logo-mandiri">
-        <img src="https://buatlogoonline.com/wp-content/uploads/2022/10/Logo-Bank-BCA-1.png" alt="Bank Mandiri" style="width:70px;">
-      </div>
-      <p>Sartika Putri Butolo</p>
-      <h3>7975770443</h3>
-      <button class="btn btn btn-dark mt-3 btn-block" onclick="copyToClipboard('7975770443')">Salin Nomor</button>
-    </div>
+    function decryptData(encrypted) {
+        try {
+            const jsonStr = decodeURIComponent(escape(atob(encrypted)));
+            return JSON.parse(jsonStr);
+        } catch (e) {
+            console.error('Gagal dekripsi:', e);
+            try {
+                return JSON.parse(encrypted);
+            } catch {
+                return null;
+            }
+        }
+    }
 
-    <div class="gift-card transisi transisi-kiri">
-      <div class="gift-card-logo-bri">
-        <img src="https://buatlogoonline.com/wp-content/uploads/2022/10/Logo-Bank-BRI.png" alt="Bank Mandiri" style="width:50px;">
-      </div>
-      <p>Jefri Husain</p>
-      <h3>002701132259509</h3>
-      <button class="btn btn btn-dark mt-3 btn-block" onclick="copyToClipboard('002701132259509')">Salin Nomor</button>
-    </div>
-    <img src="bunga-bottom.png" alt="Bottom Flowers">
-  </div>
+    function setSecureItem(key, value) {
+        const encrypted = encryptData(value);
+        if (encrypted) localStorage.setItem(key, encrypted);
+    }
 
-  <!-- Frame 5 -->
-  <div class="frame frame-5" id="frame-5">
-    <img src="bunga-top.png" alt="Top Flowers" >   
-    <center><h2 class="transisi transisi-bawah" style="font-family: Redressed; ">Moment Gallery</h2></center><br/>
-    <div class="moment">
-      <div class="foto lebar" onclick="showImage(0)"><img src="image/u3a.jpg"></div>
-      <div class="foto panjang" onclick="showImage(1)"><img src="image/u2.jpg"></div>
-      <div class="foto large" onclick="showImage(2)"><img src="image/u8.jpg"></div>
-      <div class="foto lebar" onclick="showImage(4)"><img src="image/u1.jpg"></div>
-      <div class="foto panjang" onclick="showImage(3)"><img src="image/u4.jpg"></div>
-      <div class="foto lebar" onclick="showImage(6)"><img src="image/u10.jpg"></div>
-      <div class="foto panjang" onclick="showImage(5)"><img src="image/u9.jpg"></div>
-      <div class="foto large" onclick="showImage(7)"><img src="image/u5.jpg"></div>
-    </div>
-    <img src="bunga-bottom.png" alt="Bottom Flowers">
-  </div>
+    function getSecureItem(key) {
+        const item = localStorage.getItem(key);
+        if (!item) return null;
+        return decryptData(item);
+    }
 
-  <!-- Modal -->
-  <div id="modal" class="modal">
-      <div class="modal-header">
-          <span class="close" onclick="closeModal()">&times;</span>
-      </div>
-      <div class="modal-content">
-          <img id="modal-image" src="" alt="Modal Image">
-      </div>
-      <div class="modal-footer">
-          <button class="prev" onclick="changeSlide(-1)">&#10094;</button>
-          <button class="next" onclick="changeSlide(1)">&#10095;</button>
-      </div>
-  </div>
-  </div>
+    let selectedPackage = { price: 10000, duration: 'minggu', days: 7 };
 
+    // Cek apakah sudah login
+    if (getSecureItem('guruData')) {
+        window.location.href = 'guru-dashboard.html';
+    }
 
-  <!-- Frame 6 -->
-  <div class="frame frame-6" id="frame-6">
-    <img src="bunga-top.png" alt="Top Flowers" > 
-    <center><h2 class="transisi transisi-bawah" style="font-family: Redressed;">Doa dan Ucapan</h2></center><p></p>
+    function showMessage(msg, type) {
+        const div = document.getElementById('message');
+        
+        // Hapus properti display inline agar class CSS berlaku
+        div.style.display = '';
+        
+        // Set teks dan class
+        div.textContent = msg;
+        div.className = `message ${type}`;
+        
+        // Hapus timeout sebelumnya jika ada
+        if (window.messageTimeout) {
+            clearTimeout(window.messageTimeout);
+        }
+        
+        // Sembunyikan setelah 5 detik
+        window.messageTimeout = setTimeout(() => {
+            div.style.display = 'none';
+            div.className = 'message'; // reset class
+        }, 5000);
+    }
 
-    <div id="spinner" class="spinner" style="display:none;">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden"></span>
-      </div>
-    </div>
-    
-    <form id="formPernikahan" class="ucapan-section">
-      <div class="form-group transisi transisi-kiri">
-        <label for="nama">Nama:</label>
-        <input type="text" class="form-control" id="nama" name="nama" required>
-      </div>
-      <div class="form-group transisi transisi-kiri">
-        <label for="kehadiran">Konfirmasi Kehadiran:</label>
-        <select class="form-control" id="kehadiran" required>
-          <option value="Hadir">Hadir</option>
-          <option value="Tidak Hadir">Tidak Hadir</option>
-        </select>
-      </div>
-      <div class="form-group transisi transisi-kiri">
-        <label for="pesan">Kirim Doa & Ucapan:</label>
-        <textarea class="form-control" id="pesan" name="pesan" rows="3" required></textarea>
-      </div>
-      <button type="submit" class="btn btn-dark btn-block">Kirim</button>
-    </form>
-    <div class="ucapan-container" id="ucapan"></div>
-    <div id="respon" ></div> <!-- Untuk menampilkan status respon -->
-    
-    <img src="bunga-bottom.png" alt="Bottom Flowers">
-  </div>
+    function switchTab(tab) {
+        const login = document.getElementById('loginForm');
+        const reg = document.getElementById('registerForm');
+        const btns = document.querySelectorAll('.tab-btn');
+        btns.forEach(btn => btn.classList.remove('active'));
+        if (tab === 'login') {
+            login.classList.remove('hidden');
+            reg.classList.add('hidden');
+            btns[0].classList.add('active');
+        } else {
+            login.classList.add('hidden');
+            reg.classList.remove('hidden');
+            btns[1].classList.add('active');
+        }
+        document.getElementById('message').className = 'message';
+    }
 
-  <!-- Frame 2 -->
-  <div class="frame frame-2" id="frame-2">
-    <img src="bunga-top.png" alt="Top Flowers" > 
-  
-    <div class="dandiantara">
-      <br class="transisi transisi-atas"><b><u>Turut Mengundang:</u></b>
-      <br class="transisi transisi-kiri">Keluarga Butolo
-      <br class="transisi transisi-kanan">Keluarga Yahya
-      <br class="transisi transisi-kiri">Keluarga Husain
-      <br class="transisi transisi-kanan">Keluarga Aliu
-      <hr style="padding-top: 30px;"></hr>
-      <p class="transisi transisi-bawah"><i>Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir untuk memberikan doa restu kepada kami. Atas kehadiran dan doa restunya, kami ucapkan terima kasih.</i></p>
-    </div>
+    function selectPackage(el) {
+        document.querySelectorAll('.package-option').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedPackage = {
+            price: parseInt(el.dataset.price),
+            duration: el.dataset.duration,
+            days: parseInt(el.dataset.days)
+        };
+    }
 
-    <img src="bunga-bottom.png" alt="Bottom Flowers">
+    async function handleLogin() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        if (!email || !password) return showMessage('Isi semua field', 'error');
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.disabled = true; 
+        btn.innerHTML = `<span class="btn-spinner"></span> Memeriksa...`;
 
-    
-  <footer>
-    <a href="https://wa.me/+6289609745090?text=Hai%20Admin,%20Saya%20ingin%20pesan%20Undangan%20Digital" style="color: #ffffff;"><img src="https://img.icons8.com/?size=20&id=uZWiLUyryScN&format=png&color=000000" />
-      Pesan Undangan Digital Sekarang!
-    </a>
-  </footer>
-  </div>
+        // Dapatkan IP publik (gratis)
+        let ip = 'unknown';
+        try {
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipRes.json();
+            ip = ipData.ip;
+        } catch (e) {
+            console.warn('Gagal mendapatkan IP');
+        }
 
-  <button id="music-control" class="tombolmusik hidden">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#915f3e" class="bi bi-pause-circle-fill" viewBox="0 0 16 16">
-      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.25 5C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5m3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5"/>
-    </svg>
-  </button>
-    <audio id="background-music" src="backsound.mp3"></audio>
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'login', email, password, ip })
+            });
+            const json = await res.json();
+            if (json.success) {
+                setSecureItem('guruData', json.data);
+                window.location.href = 'guru-dashboard.html';
+            } else {
+                // Cek apakah pesan error adalah 'expired'
+                if (json.message === 'expired' && json.data) {
+                    const paket = json.data.paket || 'Anda';
+                    const uid = json.data.uid;
+                    const waNumber = '6289609745090'; // Nomor admin
+                    const waMessage = `Halo Admin, saya ingin memperpanjang paket GoAbs. UID: ${uid}`;
+                    const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
+                    
+                    // Buat pesan dengan tautan
+                    const msgDiv = document.getElementById('message');
+                    msgDiv.innerHTML = ''; // Kosongkan
+                    msgDiv.className = 'message error';
+                    msgDiv.style.display = 'flex';
+                    msgDiv.innerHTML = `
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Paket ${paket} Anda telah berakhir. 
+                            <a href="${waLink}" target="_blank">Klik di sini untuk mengaktifkan kembali</a>
+                        </span>
+                    `;
+                    
+                    // Hapus timeout sebelumnya
+                    if (window.messageTimeout) clearTimeout(window.messageTimeout);
+                    window.messageTimeout = setTimeout(() => {
+                        msgDiv.style.display = 'none';
+                        msgDiv.className = 'message';
+                        msgDiv.innerHTML = '';
+                    }, 10000); // tampilkan lebih lama (10 detik)
+                } else {
+                    showMessage(json.message, 'error');
+                }
+            }
+        } catch (err) {
+            showMessage('Gagal koneksi', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
 
+    async function handleRegister() {
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        const whatsapp = document.getElementById('regWhatsapp').value;
+        const sekolah = document.getElementById('regSekolah').value;
+        const namaKelas = document.getElementById('regKelas').value;
+        if (!name || !email || !password || !whatsapp || !sekolah || !namaKelas) return showMessage('Semua field harus diisi', 'error');
+        if (password.length < 6) return showMessage('Password min 6 karakter', 'error');
+        const btn = event.target;
+        btn.disabled = true; btn.textContent = 'Mendaftar...';
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'register',
+                    name, email, password, whatsapp, sekolah, namaKelas,
+                    paket: selectedPackage.duration,
+                    harga: selectedPackage.price,
+                    masaHari: selectedPackage.days
+                })
+            });
+            const json = await res.json();
+            if (json.success) {
+                showMessage('Pendaftaran berhasil! Silakan hubungi admin untuk aktivasi.', 'success');
+                const waMsg = `Halo Admin, saya ${name} ingin order WebApp Absensi dengan paket ${selectedPackage.duration}, harga Rp ${selectedPackage.price.toLocaleString()}. Email: ${email}. Sekolah: ${sekolah}, Kelas: ${namaKelas}`;
+                const waLink = document.createElement('a');
+                waLink.href = `https://wa.me/6289609745090?text=${encodeURIComponent(waMsg)}`;
+                waLink.target = '_blank';
+                waLink.className = 'wa-link';
+                waLink.innerHTML = '<i class="fab fa-whatsapp"></i> Kirim Bukti Pembayaran ke Admin';
+                document.getElementById('registerForm').appendChild(waLink);
+            } else {
+                showMessage(json.message, 'error');
+            }
+        } catch (err) { showMessage('Gagal koneksi', 'error'); }
+        finally { btn.disabled = false; btn.textContent = 'Daftar & Kirim ke Admin'; }
+    }
 
-  <script src="script.js"></script>
-  
-  
+    document.querySelector('.package-option').classList.add('selected');
+</script>
 </body>
 </html>
