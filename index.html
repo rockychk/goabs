@@ -545,6 +545,48 @@
         };
     }
 
+    async function trackUserAccess() {
+        try {
+            const trackData = {
+                email: document.getElementById('email')?.value || 'Unknown',
+                ip: await getClientIP(),
+                userAgent: navigator.userAgent,
+                referrer: document.referrer,
+                timestamp: new Date().toISOString()
+            };
+            
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'trackUser',
+                    ...trackData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (!result.isRegistered && document.getElementById('email')?.value) {
+                console.log('⚠️ Pengguna tidak terdaftar');
+            }
+        } catch(e) {
+            console.log('Tracking error:', e);
+        }
+    }
+
+    async function getClientIP() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip;
+        } catch(e) {
+            return 'Unable to get IP';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        trackUserAccess();
+    });
+
     async function handleLogin() {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
@@ -554,7 +596,6 @@
         btn.disabled = true; 
         btn.innerHTML = `<span class="btn-spinner"></span> Memeriksa...`;
 
-        // Dapatkan IP publik (gratis)
         let ip = 'unknown';
         try {
             const ipRes = await fetch('https://api.ipify.org?format=json');
