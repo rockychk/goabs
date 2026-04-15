@@ -546,31 +546,30 @@
     }
 
     async function trackUserAccess() {
-        try {
-            const trackData = {
-                email: document.getElementById('email')?.value || 'Unknown',
-                ip: await getClientIP(),
+        // Non-blocking: jangan pakai await
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'trackUser',
+                email: document.getElementById('loginEmail')?.value || 'Unknown',
+                ip: await getClientIP().catch(() => 'Unknown'),
                 userAgent: navigator.userAgent,
                 referrer: document.referrer,
-                timestamp: new Date().toISOString()
-            };
-            
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'trackUser',
-                    ...trackData
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (!result.isRegistered && document.getElementById('email')?.value) {
-                console.log('⚠️ Pengguna tidak terdaftar');
-            }
-        } catch(e) {
-            console.log('Tracking error:', e);
+                timestamp: new Date().toISOString(),
+                devToolsDetected: detectDevTools()
+            })
+        }).catch(e => console.log('Tracking error:', e));
+    }
+
+    // Deteksi DevTools untuk index.html
+    function detectDevTools() {
+        let detected = false;
+        const widthThreshold = window.outerWidth - window.innerWidth > 200;
+        const heightThreshold = window.outerHeight - window.innerHeight > 200;
+        if (widthThreshold || heightThreshold) {
+            detected = true;
         }
+        return detected;
     }
 
     async function getClientIP() {
@@ -584,7 +583,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        trackUserAccess();
+        trackUserAccess().catch(e => console.log('Tracking error:', e));
     });
 
     async function handleLogin() {
@@ -620,7 +619,7 @@
                     const paket = json.data.paket || 'Anda';
                     const uid = json.data.uid;
                     const waNumber = '6289609745090'; // Nomor admin
-                    const waMessage = `Halo Admin, saya ingin memperpanjang paket GoAbs. UID: ${uid}`;
+                    const waMessage = `Halo Admin, saya ingin memperpanjang paket di GoAbs. UID: ${uid}`;
                     const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
                     
                     // Buat pesan dengan tautan
@@ -679,7 +678,7 @@
             const json = await res.json();
             if (json.success) {
                 showMessage('Pendaftaran berhasil! Silakan hubungi admin untuk aktivasi.', 'success');
-                const waMsg = `Halo Admin, saya ${name} ingin order WebApp Absensi dengan paket ${selectedPackage.duration}, harga Rp ${selectedPackage.price.toLocaleString()}. Email: ${email}. Sekolah: ${sekolah}, Kelas: ${namaKelas}`;
+                const waMsg = `Halo Admin, saya ${name} ingin berlangganan di GoAbs dengan paket ${selectedPackage.duration}, harga Rp ${selectedPackage.price.toLocaleString()}. Email: ${email}. Sekolah: ${sekolah}, Kelas: ${namaKelas}`;
                 const waLink = document.createElement('a');
                 waLink.href = `https://wa.me/6289609745090?text=${encodeURIComponent(waMsg)}`;
                 waLink.target = '_blank';
