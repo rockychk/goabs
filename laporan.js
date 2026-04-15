@@ -669,7 +669,7 @@ async function backupData() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `absenku_backup_${currentUser.name.replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.absenku`;
+        a.download = `goabsku_backup_${currentUser.name.replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.goabsku`;
         a.click();
         URL.revokeObjectURL(url);
         showToast('✅ Backup berhasil diunduh');
@@ -692,7 +692,7 @@ async function encryptBackup(text, password) {
     const key = await crypto.subtle.deriveKey(
         {
             name: 'PBKDF2',
-            salt: enc.encode('absenku-salt'),
+            salt: enc.encode('goabsku-salt'),
             iterations: 100000,
             hash: 'SHA-256'
         },
@@ -717,34 +717,49 @@ async function encryptBackup(text, password) {
 ////////// FUNGSI RESTORE ////////////
 async function restoreData(file) {
     if (!file) return;
+    
+    // Cek ekstensi file
+    if (!file.name.endsWith('.goabsku')) {
+        showToast('❌ File harus berekstensi .goabsku');
+        document.getElementById('restoreFileInput').value = '';
+        return;
+    }
+    
     showToast('Memproses file restore...');
+    
     try {
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
-                // Baca sebagai teks biasa (Base64 string)
+                // Baca file sebagai teks (encrypted base64)
                 const encryptedBase64 = e.target.result;
-                const password = currentUser.uid.slice(0,8);
+                const password = currentUser.uid.slice(0, 8);
+                
+                // Dekripsi file
                 const decryptedText = await decryptBackup(encryptedBase64, password);
                 const backup = JSON.parse(decryptedText);
                 
-                // Validasi sederhana
+                // Validasi
                 if (!backup.version || !backup.uid || backup.uid !== currentUser.uid) {
                     showToast('❌ File backup tidak valid atau bukan milik akun ini');
                     return;
                 }
-
+                
                 showConfirm(
                     '⚠️ Data yang ada akan diganti dengan data dari backup. Lanjutkan?',
                     'Konfirmasi Restore',
                     async () => {
                         showToast('Mengembalikan data...');
+                        
+                        // Kirim data ke server (dalam bentuk plain JSON, bukan terenkripsi)
                         const res = await apiCall('restoreBackup', {
                             uid: currentUser.uid,
                             backup: backup
                         });
+                        
                         if (res.success) {
                             showToast('✅ Data berhasil dipulihkan. Memuat ulang...');
+                            // Hapus cache
                             localStorage.removeItem(CACHE_KEY_MAPEL);
                             localStorage.removeItem(CACHE_KEY_SISWA);
                             setTimeout(() => location.reload(), 1500);
@@ -754,15 +769,15 @@ async function restoreData(file) {
                     }
                 );
             } catch (err) {
-                console.error(err);
-                showToast('❌ File rusak atau password salah');
+                console.error('Restore error:', err);
+                showToast('❌ File rusak, password salah, atau format tidak valid');
             }
         };
-        // Baca file sebagai teks (UTF-8), bukan Data URL
         reader.readAsText(file);
     } catch (e) {
         showToast('❌ Gagal membaca file');
     }
+    
     // Reset input
     document.getElementById('restoreFileInput').value = '';
 }
@@ -770,7 +785,7 @@ async function restoreData(file) {
 async function decryptBackup(encryptedBase64, password) {
     const enc = new TextEncoder();
     
-    // Konversi Base64 ke Uint8Array dengan aman
+    // Konversi Base64 ke Uint8Array
     const binaryString = atob(encryptedBase64);
     const combined = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
@@ -787,10 +802,11 @@ async function decryptBackup(encryptedBase64, password) {
         false,
         ['deriveKey']
     );
+    
     const key = await crypto.subtle.deriveKey(
         {
             name: 'PBKDF2',
-            salt: enc.encode('absenku-salt'),
+            salt: enc.encode('goabsku-salt'),
             iterations: 100000,
             hash: 'SHA-256'
         },
@@ -799,11 +815,13 @@ async function decryptBackup(encryptedBase64, password) {
         false,
         ['decrypt']
     );
+    
     const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv },
+        { name: 'AES-GCM', iv: iv },
         key,
         data
     );
+    
     return new TextDecoder().decode(decrypted);
 }
 
