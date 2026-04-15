@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - GoAbs</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:#f1f5f9; padding:16px; }
+        .container { max-width:600px; margin:0 auto; }
+        
+        /* ===== HEADER ===== */
+        .header { background:linear-gradient(135deg,#1e293b,#0f172a); border-radius:24px; padding:20px; margin-bottom:20px; color:white; }
+        .header h1 { font-size:20px; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+        .header p { font-size:13px; opacity:0.8; }
+        
+        /* ===== STATS GRID ===== */
+        .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+        .stat-card { background:white; border-radius:20px; padding:16px 12px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+        .stat-icon { font-size:24px; margin-bottom:8px; }
+        .stat-value { font-size:22px; font-weight:800; color:#1e293b; }
+        .stat-label { font-size:11px; color:#64748b; margin-top:4px; }
+        
+        /* ===== SECTION ===== */
+        .section { background:white; border-radius:24px; padding:20px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.02); }
+        .section-title { font-size:18px; font-weight:700; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+        
+        /* ===== SEARCH ===== */
+        .search-box { background:#f1f5f9; border-radius:16px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+        .search-box i { color:#94a3b8; }
+        .search-box input { flex:1; border:none; background:transparent; outline:none; font-size:14px; }
+        
+        /* ===== GURU ITEM ===== */
+        .guru-item { background:#f8fafc; border-radius:16px; padding:14px; margin-bottom:12px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; transition:all 0.2s; }
+        .guru-item:hover { background:#f1f5f9; }
+        .guru-info h4 { font-size:15px; font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .guru-info p { font-size:12px; color:#64748b; margin-bottom:4px; }
+        .badge { padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; display:inline-block; }
+        .badge-pending { background:#fef3c7; color:#d97706; }
+        .badge-aktif { background:#dcfce7; color:#16a34a; }
+        .badge-expired { background:#fee2e2; color:#dc2626; }
+        .progress-container { width:100%; margin-top:8px; height:6px; background:#e2e8f0; border-radius:10px; overflow:hidden; }
+        .progress-bar { height:100%; background:#667eea; border-radius:10px; transition:width 0.3s; }
+        .action-buttons { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+        
+        /* ===== BUTTONS ===== */
+        .btn-sm { padding:8px 14px; border:none; border-radius:12px; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:6px; }
+        .btn-primary { background:#667eea; color:white; }
+        .btn-success { background:#22c55e; color:white; }
+        .btn-danger { background:#ef4444; color:white; }
+        .btn-warning { background:#f59e0b; color:white; }
+        .btn-outline { background:transparent; border:1px solid #e2e8f0; color:#334155; }
+        
+        /* ===== TABS ===== */
+        .tabs { display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid #e2e8f0; }
+        .tab { padding:10px 16px; font-size:14px; font-weight:600; cursor:pointer; color:#64748b; border-bottom:2px solid transparent; }
+        .tab.active { color:#667eea; border-bottom-color:#667eea; }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+        
+        /* ===== MODAL ===== */
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+        .modal-content { background:white; border-radius:28px; padding:24px; max-width:450px; width:100%; max-height:90vh; overflow-y:auto; }
+        .form-group { margin-bottom:16px; }
+        .form-group label { display:block; font-size:13px; margin-bottom:6px; font-weight:600; color:#334155; }
+        .form-group input, .form-group select, .form-group textarea { width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:12px; font-size:14px; font-family:'Inter',sans-serif; }
+        .modal-buttons { display:flex; gap:12px; margin-top:20px; }
+        
+        /* ===== TOAST ===== */
+        .toast { position:fixed; bottom:20px; left:20px; right:20px; background:#1e293b; color:white; padding:14px 18px; border-radius:16px; display:flex; align-items:center; gap:12px; z-index:1100; box-shadow:0 8px 20px rgba(0,0,0,0.2); animation:slideUp 0.3s; }
+        .toast.success { background:#16a34a; }
+        .toast.error { background:#dc2626; }
+        .toast i { font-size:18px; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        
+        /* ===== NOTIFICATION PANEL ===== */
+        .alert-panel { background:#fff8e1; border-radius:16px; padding:16px; margin-bottom:16px; border-left:4px solid #f59e0b; }
+        .alert-title { font-weight:700; font-size:14px; margin-bottom:8px; color:#b45309; }
+        .alert-item { font-size:13px; padding:6px 0; border-bottom:1px solid #ffecb3; }
+        .alert-item:last-child { border-bottom:none; }
+        
+        /* ===== ABSENSI FILTER ===== */
+        .filter-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+        .filter-bar select, .filter-bar input { flex:1; padding:10px; border:1px solid #e2e8f0; border-radius:12px; font-size:13px; }
+        
+        /* ===== LOADING ===== */
+        .loading { text-align:center; padding:40px; color:#64748b; }
+        .spinner { width:40px; height:40px; border:4px solid #e2e8f0; border-top-color:#667eea; border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 16px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width:480px) {
+            .stats-grid { gap:8px; }
+            .stat-card { padding:12px 6px; }
+        }
+
+        /* ===== BUKTI PEMBELIAN ===== */
+        .upload-bukti-btn {
+            background: #e2e8f0;
+            color: #334155;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .upload-bukti-btn:hover {
+            background: #cbd5e1;
+        }
+
+        .package-options-modal {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .package-option-modal {
+            padding: 12px 8px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: white;
+        }
+        .package-option-modal.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+        .package-price {
+            font-weight: 800;
+            color: #667eea;
+            font-size: 16px;
+        }
+        .package-desc {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-shield-alt"></i> Admin Panel</h1>
+        <p>Kelola guru, absensi, dan pengaturan sistem</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-chalkboard-user"></i></div><div class="stat-value" id="totalGuru">0</div><div class="stat-label">Total Guru</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-value" id="totalPending">0</div><div class="stat-label">Pending</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-value" id="totalAktif">0</div><div class="stat-label">Aktif</div></div>
+    </div>
+
+    <!-- Alert Panel (Notifikasi Real-Time) -->
+    <div id="alertPanel" class="alert-panel" style="display:none;"></div>
+
+    <!-- Main Section with Tabs -->
+    <div class="section">
+        <div class="tabs">
+            <div class="tab active" data-tab="guru" onclick="switchTab('guru')"><i class="fas fa-users"></i> Guru</div>
+            <div class="tab" data-tab="kelas" onclick="switchTab('kelas')"><i class="fas fa-door-open"></i> Kelas</div>
+            <div class="tab" data-tab="absensi" onclick="switchTab('absensi')"><i class="fas fa-calendar-alt"></i> Absensi</div>
+            <div class="tab" data-tab="setting" onclick="switchTab('setting')"><i class="fas fa-cog"></i> Setting</div>
+            <div class="tab" data-tab="pembelian" onclick="switchTab('pembelian')"><i class="fas fa-shopping-cart"></i> Pembelian</div>
+        </div>
+
+        <!-- Tab Guru -->
+        <div id="tabGuru" class="tab-content active">
+            <div class="section-title">
+                <span>📋 Manajemen Guru</span>
+                <button class="btn-sm btn-outline" onclick="refreshData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+            </div>
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchGuru" placeholder="Cari nama, email, atau sekolah..." onkeyup="filterGuru()"></div>
+            <div id="guruList"><div class="loading"><div class="spinner"></div>Memuat data guru...</div></div>
+        </div>
+
+        <!-- Tab Kelas -->
+        <div id="tabKelas" class="tab-content">
+            <div class="section-title"><span>📚 Statistik Kelas</span></div>
+            <div class="form-group">
+                <label>Pilih Guru</label>
+                <select id="selectGuruKelas" onchange="loadKelasStats()" style="width:100%;padding:12px;border-radius:12px;border:1px solid #e2e8f0;">
+                    <option value="">-- Pilih Guru --</option>
+                </select>
+            </div>
+            <div id="kelasStatsContainer"><p style="color:#64748b;text-align:center;padding:20px">Pilih guru untuk melihat statistik kelasnya</p></div>
+        </div>
+
+        <!-- Tab Absensi -->
+        <div id="tabAbsensi" class="tab-content">
+            <div class="section-title"><span>📅 Riwayat Absensi</span></div>
+            <div class="form-group">
+                <label>Pilih Guru</label>
+                <select id="filterGuruAbsensi" onchange="loadAbsensi()" style="width:100%;padding:12px;border-radius:12px;border:1px solid #e2e8f0;">
+                    <option value="">-- Pilih Guru --</option>
+                </select>
+            </div>
+            <div id="absensiFilterContainer" style="display:none;">
+                <div class="filter-bar">
+                    <input type="date" id="filterTanggalStart" placeholder="Dari">
+                    <input type="date" id="filterTanggalEnd" placeholder="Sampai">
+                    <select id="filterMapelAbsensi">
+                        <option value="">Semua Mapel</option>
+                    </select>
+                    <button class="btn-sm btn-primary" onclick="loadAbsensi()"><i class="fas fa-filter"></i> Filter</button>
+                </div>
+                <div style="display:flex; gap:8px; margin-bottom:16px;">
+                    <button class="btn-sm btn-success" onclick="exportAbsensiCSV()"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+            </div>
+            <div id="absensiList"></div>
+        </div>
+
+        <!-- Tab Pembelian -->
+        <div id="tabPembelian" class="tab-content">
+            <div class="section-title"><span>💰 Riwayat Pembelian</span></div>
+            <div id="pembelianListContainer">
+                <div class="loading"><div class="spinner"></div>Memuat data pembelian...</div>
+            </div>
+            <div id="totalPembelianContainer" style="margin-top:20px; text-align:right; font-weight:700; font-size:18px; padding:16px; background:#f8fafc; border-radius:16px;"></div>
+        </div>
+
+        <!-- Tab Setting -->
+        <div id="tabSetting" class="tab-content">
+            <div class="section-title"><span>⚙️ Pengaturan Sistem</span></div>
+            <div class="form-group"><label>Telegram Bot Token</label><input type="text" id="botToken" placeholder="Masukkan Token Bot Telegram"></div>
+            <div class="form-group"><label>Admin Chat ID</label><input type="text" id="adminChatId" placeholder="Masukkan Chat ID Admin"></div>
+            <button class="btn-sm btn-primary" style="width:100%;padding:12px;margin-bottom:10px" onclick="saveSettings()"><i class="fas fa-save"></i> Simpan Pengaturan</button>
+            <button class="btn-sm btn-success" style="width:100%;padding:12px" onclick="testTelegram()"><i class="fab fa-telegram"></i> Test Kirim Pesan</button>
+            <hr style="margin:20px 0">
+            <button class="btn-sm btn-danger" style="width:100%;padding:12px" onclick="showConfirm('⚠️ Reset semua data? Tindakan ini tidak dapat dibatalkan.', 'Reset Sistem', () => resetSystem())"><i class="fas fa-exclamation-triangle"></i> Reset Seluruh Data</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detail/Aktivasi/Perpanjang Guru -->
+<div id="modalGuru" class="modal">
+    <div class="modal-content">
+        <h3 id="modalGuruTitle">Detail Guru</h3>
+        <input type="hidden" id="modalGuruUid">
+        <div id="modalGuruContent"></div>
+        <div class="modal-buttons" id="modalGuruButtons"></div>
+        <button class="btn-sm btn-outline" style="width:100%;margin-top:12px" onclick="closeModal('modalGuru')">Tutup</button>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Umum -->
+<div id="modalConfirm" class="modal">
+    <div class="modal-content" style="max-width:350px; text-align:center">
+        <h3 id="confirmTitle">Konfirmasi</h3>
+        <p id="confirmMessage" style="margin:16px 0"></p>
+        <div class="modal-buttons">
+            <button class="btn-sm btn-outline" style="flex:1" onclick="closeConfirm(false)">Batal</button>
+            <button class="btn-sm btn-danger" style="flex:1" id="confirmBtnYes">Ya</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer"></div>
+
+<input type="file" id="fileBuktiInput" accept="image/*" style="display:none" onchange="handleBuktiUpload(event)">
+
+<script>
+    // ==================== CONFIG ====================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCbCUzowT1_1gohZGrw3Snyn9DLmYswkha1-nbvgLGj7UL7ojLgGO5u3HwSNOoHM-ACg/exec';
+    let allGuruData = [];
+    let currentGuruForModal = null;
+    let confirmCallback = null;
+
+    // ==================== UTILITY ====================
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        if (typeof str !== 'string') str = String(str);
+        return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]));
+    }
+
+    function showToast(msg, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        let icon = 'info-circle';
+        if (type === 'success') icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        toast.innerHTML = `<i class="fas fa-${icon}"></i><span>${escapeHtml(msg)}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
+    async function apiCall(action, data = {}) {
+        try {
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, ...data }) });
+            return await res.json();
+        } catch (e) {
+            console.error(e);
+            return { success: false, message: 'Gagal koneksi' };
+        }
+    }
+
+    // ==================== MODAL CONFIRM ====================
+    function showConfirm(message, title, callback) {
+        document.getElementById('confirmTitle').textContent = title || 'Konfirmasi';
+        document.getElementById('confirmMessage').textContent = message;
+        confirmCallback = callback;
+        document.getElementById('modalConfirm').style.display = 'flex';
+    }
+    function closeConfirm(confirmed) {
+        document.getElementById('modalConfirm').style.display = 'none';
+        if (confirmed && typeof confirmCallback === 'function') confirmCallback();
+        confirmCallback = null;
+    }
+    document.getElementById('confirmBtnYes').addEventListener('click', () => closeConfirm(true));
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    // ==================== LOAD DATA ====================
+    async function loadGuruList() {
+        const container = document.getElementById('guruList');
+        container.innerHTML = '<div class="loading"><div class="spinner"></div>Memuat data...</div>';
+        const res = await apiCall('getGuruList');
+        if (res.success) {
+            allGuruData = res.data;
+            updateStats();
+            updateAlertPanel();
+            renderGuruList(allGuruData);
+            populateGuruSelects();
+        } else {
+            container.innerHTML = `<p style="text-align:center;color:#dc2626">Error: ${res.message}</p>`;
+        }
+    }
+
+    function updateStats() {
+        const total = allGuruData.length;
+        const pending = allGuruData.filter(g => g.status === 'pending').length;
+        const aktif = allGuruData.filter(g => g.status === 'aktif' && new Date(g.tglExpired) >= new Date()).length;
+        document.getElementById('totalGuru').textContent = total;
+        document.getElementById('totalPending').textContent = pending;
+        document.getElementById('totalAktif').textContent = aktif;
+    }
+
+    function updateAlertPanel() {
+        const panel = document.getElementById('alertPanel');
+        const today = new Date();
+        const threeDaysLater = new Date(today.getTime() + 3*24*60*60*1000);
+        const expiredSoon = allGuruData.filter(g => {
+            if (g.status !== 'aktif' || !g.tglExpired) return false;
+            const exp = new Date(g.tglExpired);
+            return exp >= today && exp <= threeDaysLater;
+        });
+        const alreadyExpired = allGuruData.filter(g => {
+            if (g.status !== 'aktif' || !g.tglExpired) return false;
+            return new Date(g.tglExpired) < today;
+        });
+
+        if (expiredSoon.length === 0 && alreadyExpired.length === 0) {
+            panel.style.display = 'none';
+            return;
+        }
+        panel.style.display = 'block';
+        let html = '<div class="alert-title"><i class="fas fa-bell"></i> Notifikasi Penting</div>';
+        if (alreadyExpired.length > 0) {
+            html += `<div class="alert-item"><i class="fas fa-times-circle" style="color:#dc2626"></i> ${alreadyExpired.length} guru masa aktifnya sudah habis.</div>`;
+        }
+        if (expiredSoon.length > 0) {
+            html += `<div class="alert-item"><i class="fas fa-clock" style="color:#d97706"></i> ${expiredSoon.length} guru akan segera habis.</div>`;
+        }
+        panel.innerHTML = html;
+    }
+
+    function renderGuruList(guruList) {
+        const container = document.getElementById('guruList');
+        if (!guruList.length) {
+            container.innerHTML = '<p style="text-align:center;color:#64748b;padding:20px">Belum ada guru terdaftar</p>';
+            return;
+        }
+        const today = new Date();
+        container.innerHTML = guruList.map(g => {
+            const isExpired = g.status === 'aktif' && g.tglExpired && new Date(g.tglExpired) < today;
+            const statusClass = g.status === 'aktif' ? (isExpired ? 'badge-expired' : 'badge-aktif') : 'badge-pending';
+            const statusText = g.status === 'aktif' ? (isExpired ? '⏰ Habis' : '✅ Aktif') : '⏳ Pending';
+            const expDate = g.tglExpired ? new Date(g.tglExpired).toLocaleDateString('id-ID') : '-';
+            const daysLeft = g.tglExpired ? Math.ceil((new Date(g.tglExpired) - today) / (1000*60*60*24)) : 0;
+            const progressPercent = g.status === 'aktif' && daysLeft > 0 ? Math.min(100, (daysLeft / 30) * 100) : (isExpired ? 100 : 0);
+            
+            return `
+                <div class="guru-item">
+                    <div class="guru-info" style="width:100%">
+                        <h4>
+                            ${escapeHtml(g.name)} 
+                            <span class="badge ${statusClass}">${statusText}</span>
+                        </h4>
+                        <p><i class="fas fa-envelope"></i> ${escapeHtml(g.email)} | <i class="fas fa-school"></i> ${escapeHtml(g.sekolah || '-')}</p>
+                        <p><i class="fas fa-chalkboard"></i> Kelas: ${escapeHtml(g.namaKelas || '-')} | Paket: ${escapeHtml(g.paket || '-')}</p>
+                        ${g.tglExpired ? `<p><i class="fas fa-calendar"></i> Berlaku hingga: ${expDate} (${daysLeft} hari lagi)</p>` : ''}
+                        ${g.status === 'aktif' ? `<div class="progress-container"><div class="progress-bar" style="width:${progressPercent}%"></div></div>` : ''}
+                        <div class="action-buttons">
+                            <button class="btn-sm btn-outline" onclick="showDetailGuru('${g.uid}')"><i class="fas fa-eye"></i> Detail</button>
+                            ${g.status === 'pending' ? 
+                                `<button class="btn-sm btn-success" onclick="openAktifkanModal('${g.uid}')"><i class="fas fa-check"></i> Aktifkan</button>` : 
+                                `<button class="btn-sm btn-primary" onclick="openPerpanjangModal('${g.uid}')"><i class="fas fa-calendar-plus"></i> Perpanjang</button>`
+                            }
+                            <button class="btn-sm btn-warning" onclick="resetPassword('${g.uid}')"><i class="fas fa-key"></i> Reset PW</button>
+                            <button class="btn-sm btn-danger" onclick="showConfirm('Hapus guru ${escapeHtml(g.name)}? Semua data akan hilang.', 'Hapus Guru', () => deleteGuru('${g.uid}'))"><i class="fas fa-trash"></i> Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.filterGuru = () => {
+        const keyword = document.getElementById('searchGuru').value.toLowerCase();
+        const filtered = allGuruData.filter(g => 
+            (g.name || '').toLowerCase().includes(keyword) || 
+            (g.email || '').toLowerCase().includes(keyword) ||
+            (g.sekolah || '').toLowerCase().includes(keyword)
+        );
+        renderGuruList(filtered);
+    };
+
+    function populateGuruSelects() {
+        const selectKelas = document.getElementById('selectGuruKelas');
+        const selectAbsensi = document.getElementById('filterGuruAbsensi');
+        const options = '<option value="">-- Pilih Guru --</option>' + 
+            allGuruData.map(g => `<option value="${g.uid}">${escapeHtml(g.name)} (${escapeHtml(g.email)})</option>`).join('');
+        selectKelas.innerHTML = options;
+        selectAbsensi.innerHTML = options;
+    }
+
+    window.refreshData = () => loadGuruList();
+
+    // ==================== DETAIL & MANAJEMEN GURU ====================
+    window.showDetailGuru = (uid) => {
+        const guru = allGuruData.find(g => g.uid === uid);
+        if (!guru) return;
+        currentGuruForModal = guru;
+        document.getElementById('modalGuruTitle').textContent = `Detail: ${guru.name}`;
+        document.getElementById('modalGuruUid').value = uid;
+        
+        const today = new Date();
+        const expDate = guru.tglExpired ? new Date(guru.tglExpired) : null;
+        const daysLeft = expDate ? Math.ceil((expDate - today) / (1000*60*60*24)) : 0;
+        const isExpired = expDate && expDate < today;
+        
+        const content = `
+            <div style="margin-bottom:16px">
+                <p><strong>Email:</strong> ${escapeHtml(guru.email)}</p>
+                <p><strong>WhatsApp:</strong> ${escapeHtml(guru.whatsapp || '-')}</p>
+                <p><strong>Sekolah:</strong> ${escapeHtml(guru.sekolah || '-')}</p>
+                <p><strong>Kelas:</strong> ${escapeHtml(guru.namaKelas || '-')}</p>
+                <p><strong>Paket:</strong> ${escapeHtml(guru.paket || '-')} (Rp ${parseInt(guru.harga || 0).toLocaleString()})</p>
+                <p><strong>Status:</strong> ${guru.status} ${isExpired ? '(Sudah habis)' : ''}</p>
+                <p><strong>Masa Aktif:</strong> ${expDate ? expDate.toLocaleDateString('id-ID') : '-'} (${daysLeft} hari lagi)</p>
+                <p><strong>Terdaftar:</strong> ${guru.createdAt ? new Date(guru.createdAt).toLocaleDateString('id-ID') : '-'}</p>
+            </div>
+        `;
+        document.getElementById('modalGuruContent').innerHTML = content;
+        
+        let buttons = '';
+        if (guru.status === 'pending') {
+            buttons = `<button class="btn-sm btn-success" style="flex:1" onclick="openAktifkanModal('${uid}'); closeModal('modalGuru')">Aktifkan</button>`;
+        } else {
+            buttons = `<button class="btn-sm btn-primary" style="flex:1" onclick="openPerpanjangModal('${uid}'); closeModal('modalGuru')">Perpanjang</button>`;
+        }
+        buttons += `<button class="btn-sm btn-warning" style="flex:1" onclick="resetPassword('${uid}'); closeModal('modalGuru')">Reset Password</button>`;
+        document.getElementById('modalGuruButtons').innerHTML = buttons;
+        
+        document.getElementById('modalGuru').style.display = 'flex';
+    };
+
+    window.openAktifkanModal = (uid) => {
+        currentGuruForModal = allGuruData.find(g => g.uid === uid);
+        document.getElementById('modalGuruTitle').textContent = 'Aktifkan Guru';
+        document.getElementById('modalGuruUid').value = uid;
+        
+        // Data paket yang tersedia
+        const paketOptions = [
+            { name: 'Mingguan', days: 7, price: 10000 },
+            { name: 'Bulanan', days: 30, price: 30000 },
+            { name: 'Semester', days: 180, price: 50000 },
+            { name: 'Tahunan', days: 365, price: 90000 },
+            { name: 'Lifetime', days: 999, price: 350000 }  // <-- tambahkan ini
+        ];
+        
+        let paketHtml = '<div class="package-options-modal">';
+        paketOptions.forEach((p) => {
+            paketHtml += `
+                <div class="package-option-modal" data-days="${p.days}" data-price="${p.price}" data-name="${p.name}" onclick="selectAktifkanPackage(this)">
+                    <div class="package-price">Rp ${p.price.toLocaleString()}</div>
+                    <div class="package-desc">${p.name}</div>
+                </div>
+            `;
+        });
+        paketHtml += '</div>';
+        
+        document.getElementById('modalGuruContent').innerHTML = `
+            <div class="form-group">
+                <label>Pilih Paket</label>
+                ${paketHtml}
+            </div>
+            <p style="font-size:13px; color:#64748b">Guru: ${escapeHtml(currentGuruForModal?.name)}</p>
+            <input type="hidden" id="selectedAktifkanDays" value="7">
+            <input type="hidden" id="selectedAktifkanPrice" value="10000">
+            <input type="hidden" id="selectedAktifkanName" value="Mingguan">
+        `;
+        
+        document.getElementById('modalGuruButtons').innerHTML = `
+            <button class="btn-sm btn-outline" style="flex:1" onclick="closeModal('modalGuru')">Batal</button>
+            <button class="btn-sm btn-success" style="flex:1" onclick="confirmAktifkan()">Aktifkan</button>
+        `;
+        
+        // Tandai paket pertama sebagai default terpilih
+        const firstOption = document.querySelector('.package-option-modal');
+        if (firstOption) firstOption.classList.add('selected');
+        
+        document.getElementById('modalGuru').style.display = 'flex';
+    };
+
+    window.selectAktifkanPackage = (el) => {
+        document.querySelectorAll('.package-option-modal').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('selectedAktifkanDays').value = el.dataset.days;
+        document.getElementById('selectedAktifkanPrice').value = el.dataset.price;
+        document.getElementById('selectedAktifkanName').value = el.dataset.name;
+    };
+
+    window.confirmAktifkan = async () => {
+        const uid = document.getElementById('modalGuruUid').value;
+        const hari = parseInt(document.getElementById('selectedAktifkanDays').value);
+        const harga = document.getElementById('selectedAktifkanPrice').value;
+        const paket = document.getElementById('selectedAktifkanName').value;
+        
+        if (!hari) {
+            showToast('Pilih paket terlebih dahulu', 'error');
+            return;
+        }
+        
+        const tglExpired = new Date();
+        tglExpired.setDate(tglExpired.getDate() + hari);
+        
+        const res = await apiCall('aktifkanGuru', { 
+            uid, 
+            tglAktif: new Date().toISOString(), 
+            tglExpired: tglExpired.toISOString(),
+            paket: paket,
+            harga: harga
+        });
+        
+        if (res.success) {
+            showToast(`Guru berhasil diaktifkan dengan paket ${paket}`, 'success');
+            closeModal('modalGuru');
+            loadGuruList();
+        } else {
+            showToast('Gagal: ' + res.message, 'error');
+        }
+    };
+
+    window.openPerpanjangModal = (uid) => {
+        currentGuruForModal = allGuruData.find(g => g.uid === uid);
+        document.getElementById('modalGuruTitle').textContent = 'Perpanjang Paket';
+        document.getElementById('modalGuruUid').value = uid;
+        
+        // Data paket yang tersedia
+        const paketOptions = [
+            { name: 'Mingguan', days: 7, price: 10000 },
+            { name: 'Bulanan', days: 30, price: 30000 },
+            { name: 'Semester', days: 180, price: 50000 },
+            { name: 'Tahunan', days: 365, price: 90000 },
+            { name: 'Lifetime', days: 999, price: 350000 }  // <-- tambahkan ini
+        ];
+        
+        let paketHtml = '<div class="package-options-modal">';
+        paketOptions.forEach((p) => {
+            paketHtml += `
+                <div class="package-option-modal" data-days="${p.days}" data-price="${p.price}" data-name="${p.name}" onclick="selectPerpanjangPackage(this)">
+                    <div class="package-price">Rp ${p.price.toLocaleString()}</div>
+                    <div class="package-desc">${p.name}</div>
+                </div>
+            `;
+        });
+        paketHtml += '</div>';
+        
+        document.getElementById('modalGuruContent').innerHTML = `
+            <div class="form-group">
+                <label>Pilih Paket Perpanjangan</label>
+                ${paketHtml}
+            </div>
+            <p style="font-size:13px; color:#64748b">Guru: ${escapeHtml(currentGuruForModal?.name)}</p>
+            <input type="hidden" id="selectedPackageDays" value="7">
+            <input type="hidden" id="selectedPackagePrice" value="10000">
+            <input type="hidden" id="selectedPackageName" value="Mingguan">
+        `;
+        
+        document.getElementById('modalGuruButtons').innerHTML = `
+            <button class="btn-sm btn-outline" style="flex:1" onclick="closeModal('modalGuru')">Batal</button>
+            <button class="btn-sm btn-primary" style="flex:1" onclick="confirmPerpanjang()">Perpanjang</button>
+        `;
+        
+        // Tandai paket pertama sebagai default terpilih
+        const firstOption = document.querySelector('.package-option-modal');
+        if (firstOption) firstOption.classList.add('selected');
+        
+        document.getElementById('modalGuru').style.display = 'flex';
+    };
+
+    window.selectPerpanjangPackage = (el) => {
+        document.querySelectorAll('.package-option-modal').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('selectedPackageDays').value = el.dataset.days;
+        document.getElementById('selectedPackagePrice').value = el.dataset.price;
+        document.getElementById('selectedPackageName').value = el.dataset.name;
+    };
+
+    window.confirmPerpanjang = async () => {
+        const uid = document.getElementById('modalGuruUid').value;
+        const tambahHari = parseInt(document.getElementById('selectedPackageDays').value);
+        const harga = document.getElementById('selectedPackagePrice').value;
+        const paket = document.getElementById('selectedPackageName').value;
+        
+        if (!tambahHari) {
+            showToast('Pilih paket terlebih dahulu', 'error');
+            return;
+        }
+        
+        const res = await apiCall('perpanjangPaket', { 
+            uid, 
+            tambahHari,
+            paket: paket,
+            harga: harga
+        });
+        
+        if (res.success) {
+            showToast(`Paket ${paket} berhasil diperpanjang`, 'success');
+            closeModal('modalGuru');
+            loadGuruList();
+        } else {
+            showToast('Gagal: ' + res.message, 'error');
+        }
+    };
+
+    window.resetPassword = (uid) => {
+        showConfirm(`Reset password guru ini ke "user123"?`, 'Reset Password', async () => {
+            const res = await apiCall('resetPassword', { uid, newPassword: 'user123' });
+            if (res.success) {
+                showToast('Password direset ke user123', 'success');
+            } else {
+                showToast('Gagal: ' + res.message, 'error');
+            }
+        });
+    };
+
+    window.deleteGuru = async (uid) => {
+        const res = await apiCall('deleteGuru', { uid });
+        if (res.success) {
+            showToast('Guru dihapus', 'success');
+            loadGuruList();
+        } else {
+            showToast('Gagal: ' + res.message, 'error');
+        }
+    };
+
+    // ==================== TAB KELAS ====================
+    window.loadKelasStats = async () => {
+        const uid = document.getElementById('selectGuruKelas').value;
+        const container = document.getElementById('kelasStatsContainer');
+        if (!uid) {
+            container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Pilih guru untuk melihat statistik kelasnya</p>';
+            return;
+        }
+        container.innerHTML = '<div class="loading"><div class="spinner"></div>Memuat data...</div>';
+        
+        const [siswaRes, mapelRes] = await Promise.all([
+            apiCall('getSiswa', { uidGuru: uid }),
+            apiCall('getMapel', { uidGuru: uid })
+        ]);
+        
+        const guru = allGuruData.find(g => g.uid === uid);
+        const jumlahSiswa = siswaRes.success ? siswaRes.data.length : 0;
+        const jumlahMapel = mapelRes.success ? mapelRes.data.length : 0;
+        
+        container.innerHTML = `
+            <div style="background:#f8fafc; border-radius:16px; padding:20px;">
+                <h4 style="margin-bottom:16px"><i class="fas fa-chalkboard-teacher"></i> ${escapeHtml(guru?.name || 'Guru')}</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; text-align:center">
+                    <div style="background:white; border-radius:16px; padding:20px">
+                        <i class="fas fa-users" style="font-size:32px; color:#667eea; margin-bottom:8px"></i>
+                        <div style="font-size:28px; font-weight:800">${jumlahSiswa}</div>
+                        <div style="color:#64748b">Siswa</div>
+                    </div>
+                    <div style="background:white; border-radius:16px; padding:20px">
+                        <i class="fas fa-book" style="font-size:32px; color:#22c55e; margin-bottom:8px"></i>
+                        <div style="font-size:28px; font-weight:800">${jumlahMapel}</div>
+                        <div style="color:#64748b">Mata Pelajaran</div>
+                    </div>
+                </div>
+                <p style="margin-top:16px; font-size:13px; color:#64748b">Kelas: ${escapeHtml(guru?.namaKelas || '-')} | Sekolah: ${escapeHtml(guru?.sekolah || '-')}</p>
+            </div>
+        `;
+    };
+
+    // ==================== TAB ABSENSI ====================
+    let currentAbsensiData = [];
+    window.loadAbsensi = async () => {
+        const uid = document.getElementById('filterGuruAbsensi').value;
+        const container = document.getElementById('absensiList');
+        const filterContainer = document.getElementById('absensiFilterContainer');
+        if (!uid) {
+            container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Pilih guru terlebih dahulu</p>';
+            filterContainer.style.display = 'none';
+            return;
+        }
+        filterContainer.style.display = 'block';
+        container.innerHTML = '<div class="loading"><div class="spinner"></div>Memuat data absensi...</div>';
+        
+        const startDate = document.getElementById('filterTanggalStart').value;
+        const endDate = document.getElementById('filterTanggalEnd').value;
+        const mapelId = document.getElementById('filterMapelAbsensi').value;
+        
+        const res = await apiCall('getAbsensi', { uidGuru: uid });
+        if (!res.success) {
+            container.innerHTML = `<p style="color:#dc2626">Gagal memuat: ${res.message}</p>`;
+            return;
+        }
+        
+        let data = res.data;
+        // Filter tanggal
+        if (startDate) data = data.filter(a => a.tanggal >= startDate);
+        if (endDate) data = data.filter(a => a.tanggal <= endDate);
+        if (mapelId) data = data.filter(a => a.mapelId === mapelId);
+        
+        // Dapatkan mapel untuk dropdown filter
+        const mapelRes = await apiCall('getMapel', { uidGuru: uid });
+        if (mapelRes.success) {
+            const selectMapel = document.getElementById('filterMapelAbsensi');
+            selectMapel.innerHTML = '<option value="">Semua Mapel</option>' + 
+                mapelRes.data.map(m => `<option value="${m.idMapel}">${escapeHtml(m.namaMapel)}</option>`).join('');
+        }
+        
+        currentAbsensiData = data;
+        
+        if (data.length === 0) {
+            container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Tidak ada data absensi</p>';
+            return;
+        }
+        
+        // Render tabel sederhana
+        let html = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr style="background:#f1f5f9"><th style="padding:8px">Tanggal</th><th>Mapel</th><th>Siswa</th><th>Status</th></tr></thead><tbody>`;
+        data.sort((a,b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
+        data.forEach(a => {
+            html += `<tr style="border-bottom:1px solid #e2e8f0">
+                <td style="padding:8px">${a.tanggal || '-'}</td>
+                <td>${escapeHtml(a.namaMapel || '-')}</td>
+                <td>${escapeHtml(a.namaSiswa || '-')}</td>
+                <td><span class="badge ${a.status === 'Hadir' ? 'badge-aktif' : (a.status === 'Terlambat' ? 'badge-pending' : 'badge-expired')}">${a.status}</span></td>
+            </tr>`;
+        });
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    };
+
+    window.exportAbsensiCSV = () => {
+        if (!currentAbsensiData.length) {
+            showToast('Tidak ada data untuk diekspor', 'error');
+            return;
+        }
+        let csv = "Tanggal,Mapel,Siswa,Status,Keterangan\n";
+        currentAbsensiData.forEach(a => {
+            csv += `"${a.tanggal || ''}","${a.namaMapel || ''}","${a.namaSiswa || ''}","${a.status || ''}","${a.keterangan || ''}"\n`;
+        });
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `absensi_${new Date().toISOString().slice(0,10)}.csv`;
+        link.click();
+        showToast('File CSV sedang didownload', 'success');
+    };
+
+    // ==================== TAB SETTING ====================
+    async function loadSettings() {
+        const res = await apiCall('getTelegramConfig');
+        if (res.success && res.data) {
+            document.getElementById('botToken').value = res.data.botToken || '';
+            document.getElementById('adminChatId').value = res.data.adminChatId || '';
+        }
+    }
+    window.saveSettings = async () => {
+        const botToken = document.getElementById('botToken').value;
+        const adminChatId = document.getElementById('adminChatId').value;
+        const res = await apiCall('saveTelegramConfig', { botToken, adminChatId });
+        showToast(res.success ? 'Pengaturan disimpan' : 'Gagal: ' + res.message, res.success ? 'success' : 'error');
+    };
+    window.testTelegram = async () => {
+        const botToken = document.getElementById('botToken').value;
+        const adminChatId = document.getElementById('adminChatId').value;
+        const res = await apiCall('sendTelegramTest', { botToken, adminChatId });
+        showToast(res.success ? 'Pesan uji terkirim' : 'Gagal: ' + res.message, res.success ? 'success' : 'error');
+    };
+    window.resetSystem = async () => {
+        showToast('Fungsi reset sistem belum diimplementasikan di Apps Script', 'error');
+    };
+
+    // ==================== TAB SWITCHING ====================
+    window.switchTab = (tabId) => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+        document.getElementById(`tab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`).classList.add('active');
+        
+        if (tabId === 'kelas') {
+            populateGuruSelects();
+        }
+        if (tabId === 'absensi') {
+            populateGuruSelects();
+        }
+        if (tabId === 'pembelian') {
+            loadPembelianData();
+        }
+        if (tabId === 'pembelian') {
+            loadPembelianData();
+        }
+    };
+
+    // ==================== TAB PEMBELIAN ====================
+    function loadPembelianData() {
+        const container = document.getElementById('pembelianListContainer');
+        const totalContainer = document.getElementById('totalPembelianContainer');
+        
+        if (!allGuruData.length) {
+            container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Belum ada data guru</p>';
+            totalContainer.innerHTML = '';
+            return;
+        }
+        
+        // Filter hanya guru yang memiliki harga (semua harusnya ada)
+        const dataPembelian = allGuruData.filter(g => g.harga && parseInt(g.harga) > 0);
+        
+        if (dataPembelian.length === 0) {
+            container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Tidak ada data pembelian</p>';
+            totalContainer.innerHTML = '';
+            return;
+        }
+        
+        let total = 0;
+        let html = `
+            <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px">
+                    <thead>
+                        <tr style="background:#f1f5f9">
+                            <th style="padding:10px; text-align:left">Nama Guru</th>
+                            <th style="padding:10px; text-align:left">Paket</th>
+                            <th style="padding:10px; text-align:right">Harga (Rp)</th>
+                            <th style="padding:10px; text-align:center">Bukti</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        dataPembelian.forEach(g => {
+            const harga = parseInt(g.harga) || 0;
+            total += harga;
+            // Placeholder untuk bukti - bisa dikembangkan nanti
+            const buktiCell = g.buktiBayar ? 
+                `<a href="${escapeHtml(g.buktiBayar)}" target="_blank"><i class="fas fa-image"></i> Lihat</a>` : 
+                '<span style="color:#94a3b8">-</span>';
+            
+            html += `
+                <tr style="border-bottom:1px solid #e2e8f0">
+                    <td style="padding:10px">${escapeHtml(g.name)}</td>
+                    <td style="padding:10px">${escapeHtml(g.paket || '-')}</td>
+                    <td style="padding:10px; text-align:right">${harga.toLocaleString()}</td>
+                    <td style="padding:10px; text-align:center">${buktiCell}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+        totalContainer.innerHTML = `<i class="fas fa-coins"></i> Total Pembelian: Rp ${total.toLocaleString()}`;
+    }
+
+    // ==================== TAB PEMBELIAN ====================
+    let currentUploadUid = null;
+
+    function loadPembelianData() {
+        const container = document.getElementById('pembelianListContainer');
+        const totalContainer = document.getElementById('totalPembelianContainer');
+        
+        if (!allGuruData.length) {
+            container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Belum ada data guru</p>';
+            totalContainer.innerHTML = '';
+            return;
+        }
+        
+        const dataPembelian = allGuruData.filter(g => g.harga && parseInt(g.harga) > 0);
+        
+        if (dataPembelian.length === 0) {
+            container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Tidak ada data pembelian</p>';
+            totalContainer.innerHTML = '';
+            return;
+        }
+        
+        let total = 0;
+        let html = `
+            <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px">
+                    <thead>
+                        <tr style="background:#f1f5f9">
+                            <th style="padding:10px; text-align:left">Nama Guru</th>
+                            <th style="padding:10px; text-align:left">Paket</th>
+                            <th style="padding:10px; text-align:right">Harga (Rp)</th>
+                            <th style="padding:10px; text-align:center">Bukti</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        dataPembelian.forEach(g => {
+            const harga = parseInt(g.harga) || 0;
+            total += harga;
+            
+            const buktiCell = g.buktiBayar ? 
+                `<a href="${escapeHtml(g.buktiBayar)}" target="_blank" class="upload-bukti-btn" style="background:#dbeafe; color:#1e40af"><i class="fas fa-image"></i> Lihat</a>` : 
+                `<button class="upload-bukti-btn" onclick="uploadBukti('${g.uid}')"><i class="fas fa-upload"></i> Upload</button>`;
+            
+            html += `
+                <tr style="border-bottom:1px solid #e2e8f0">
+                    <td style="padding:10px">${escapeHtml(g.name)}</td>
+                    <td style="padding:10px">${escapeHtml(g.paket || '-')}</td>
+                    <td style="padding:10px; text-align:right">${harga.toLocaleString()}</td>
+                    <td style="padding:10px; text-align:center">${buktiCell}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+        totalContainer.innerHTML = `<i class="fas fa-coins"></i> Total Pembelian: Rp ${total.toLocaleString()}`;
+    }
+
+    window.uploadBukti = (uid) => {
+        currentUploadUid = uid;
+        document.getElementById('fileBuktiInput').click();
+    };
+
+    async function handleBuktiUpload(event) {
+        const file = event.target.files[0];
+        if (!file || !currentUploadUid) return;
+        
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target.result;
+            showToast('Mengupload bukti...', 'info');
+            const res = await apiCall('updateBuktiPembelian', { uid: currentUploadUid, buktiUrl: base64 });
+            if (res.success) {
+                showToast('Bukti berhasil diupload', 'success');
+                // Update data lokal
+                const guru = allGuruData.find(g => g.uid === currentUploadUid);
+                if (guru) guru.buktiBayar = base64;
+                loadPembelianData();
+            } else {
+                showToast('Gagal: ' + res.message, 'error');
+            }
+            currentUploadUid = null;
+            event.target.value = '';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ==================== INIT ====================
+    loadGuruList();
+    loadSettings();
+    // Tidak pakai interval otomatis, hanya manual refresh
+</script>
+</body>
+</html>
